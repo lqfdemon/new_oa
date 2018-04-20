@@ -1,0 +1,106 @@
+{extend name="common_page" /}
+{block name="private_file"}
+    <script src="../../public/h_admin/js/plugins/bootstrap-table/extensions/export/bootstrap-table-export.js"></script>
+    <script src="../../public/h_admin/js/plugins/bootstrap-table/tableExport.js"></script>
+{/block}
+{block name="content"}
+<body class="gray-bg" onload="page_init();">
+    <div class="wrapper wrapper-content  animated fadeInRight">
+        <div class="ibox">
+            <div class="ibox-content">
+                <h4>我的会议</h4>
+            </div>
+            <div class="ibox-content">
+                <form class="form-horizontal m-t" id="condition_form">
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">会议状态：</label>
+                         <div class="col-sm-2">
+                            <select class="form-control" id="status" name="status" onchange="refresh_meeting_table();">
+                                <option value="所有">所有</option>
+                                <option value="待审核">待审核</option>
+                                <option value="审核通过">审核通过</option>
+                                <option value="审核不通过">审核不通过</option>
+                            </select>
+                        </div>               
+                        <label class="col-sm-2 control-label">会议名称：</label>
+                         <div class="col-sm-2">
+                            <input type="text" id="name"  name="name" class="form-control">
+                        </div>
+                        <div class="col-sm-2">
+                            <button type="button"  class="btn btn-primary" onclick="refresh_meeting_table();"><i class="fa fa-search"></i> 搜索</button>
+                        </div>
+                        <div class="col-sm-2">
+                             <a type="button"  class="btn btn-primary" href="{:url('add')}"><i class="fa fa-plus"></i> 申请新的会议</a>
+                        </div>
+                    </div>
+                </form>
+                <div class="row" style="padding: 20px">
+                    <table id="meeting_tb"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script type="text/javascript">
+    function page_init(){
+        init_meeting_table();
+    }
+    function init_meeting_table(){
+        var url="{:url('get_my_meeting')}";
+        //未签收
+        var column_list=
+        [
+            {
+                field: 'name',
+                title: '会议名称',
+            },{
+                field: 'status',
+                title: '状态',
+            },{
+                field: 'address',
+                title: '会议地点',
+            },{
+                field: 'start_time',
+                title: '预计开始时间',
+            },{
+                field: 'end_time',
+                title: '预计结束时间',
+            },{
+                field: 'audit_comment',
+                title: '审核意见',
+            },{
+                field: 'undo',
+                title: '撤回',
+                formatter: undoFormatter
+            },
+        ];
+        searchParams=function (params) {
+            var status =$("#condition_form #status").val();
+            var name =$("#condition_form #name").val();
+            var data = {'status':status,'name':name};
+            return data;
+        };
+        var meeting_table = new TableInit('meeting_tb',url,'id',column_list,OnClickFunction,searchParams,false);
+        meeting_table.Init();
+    }
+    function refresh_meeting_table(table_id){
+        $('#meeting_tb').bootstrapTable('refresh');
+        $('#meeting_tb').bootstrapTable('selectPage', 1);
+    }
+    function OnClickFunction(row){
+        
+    }
+    function undoFormatter(value, row, index)
+    {
+    if(row.status=="待审核"){
+        var url="{:url('undo')}"+"?id="+row.id;
+        return [
+            '<a  title="撤回"" href="'+url+'" >',
+            '<i class="fa fa-undo"></i>',
+            '撤回',
+            '</a>  ',
+        ].join('');
+    }
+    }
+</script>
+{/block}

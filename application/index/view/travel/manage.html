@@ -1,0 +1,126 @@
+{extend name="common_page" /}
+{block name="content"}
+<body class="gray-bg">
+  <div class="wrapper wrapper-content  animated fadeInRight">
+    <div class="ibox">
+      <div class="ibox-title">
+        <h4>新增申请</h4>
+      </div>
+      <div class="ibox-content">
+				<div class="row">
+			    <div class="col-sm-12" style="padding: 20px;">
+			      <div id="toolbar" class="btn-group">
+			        <button id="btn_add" type="button" class="btn btn-default" onclick="apply_study();">
+			          <span class="fa fa-edit" aria-hidden="true"></span>新增学习培训出差申请
+			        </button>
+			        <button id="btn_add" type="button" class="btn btn-default" onclick="apply_study();">
+			          <span class="fa fa-tasks" aria-hidden="true"></span>新增日常工作出差申请
+			        </button>
+			      </div>
+			    </div>
+				</div>
+			</div>
+		</div>
+		<div class="ibox">
+      <div class="ibox-title">
+        <h4>已有申请</h4>
+      </div>
+      <div class="ibox-content">
+        <div class="row" style="padding: 20px">
+          <ul class="nav nav-tabs">
+            <li class="active">
+              <a data-toggle="tab" href="#tab-1">
+              	<i class="fa fa-edit"></i> 
+              	学习培训&nbsp;
+              </a>
+            </li>
+            <li class="">
+            	<a data-toggle="tab" href="#tab-2">
+            		<i class="fa fa-tasks"></i>
+            		日常工作&nbsp;
+            	</a>
+            </li>
+          </ul> 
+          <div class="tab-content">
+            <div id="tab-1" class="tab-pane active" style="padding-top: 10px">
+              <table id="studyApplyTable"></table>
+            </div> 
+            <div id="tab-2" class="tab-pane" style="padding-top: 10px">
+              <table id="bussinessApplyTable"></table>
+            </div>
+          </div>
+        </div>
+			</div>
+		</div>
+	</div>
+</body>
+<script type="text/javascript">
+  $(document).ready( function (){
+    var studyTable = new StudyTableInit();
+    studyTable.Init();
+  });
+  var StudyTableInit = function () {
+    var oStudyTableInit = new Object();
+    //初始化Table
+    oStudyTableInit.Init = function () {
+      $('#studyApplyTable').bootstrapTable({
+        url: "{:url('get_study_applys')}",         //请求后台的URL（*）
+        method: 'get',                      //请求方式（*）
+        striped: false,                      //是否显示行间隔色
+        pageSize: 10,                       //每页的记录行数（*）
+        pageList: [10, 20],        //可供选择的每页的行数（*）       //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+        pagination: true,                   //是否显示分页（*）
+        queryParams: oStudyTableInit.queryParams,//传递参数（*）
+        uniqueId: "id",
+        columns: [
+	        {
+	            field: 'name',
+	            title: '名称',
+	        },
+	        {
+	            field: 'address',
+	            title: '地址',
+	        },
+	        {
+	            field: 'status',
+	            title: '状态',
+	        },
+          {
+              field: 'payment',
+              title: '申请报销',
+              align: 'center',
+              formatter: paymentFormatter
+          }
+        ]
+      });
+    };
+    oStudyTableInit.queryParams = function (params) {
+      var data = {};
+      return data;
+    };
+    return oStudyTableInit;
+  };
+
+  function apply_study(){
+    var url="{:url('apply_study')}";
+    window.location.href=url;
+  }
+
+  function paymentFormatter(value, row, index) {
+    if(row.status === "审核完成"){
+      return [
+          '<a class="like" title="申请报销" onclick="jump_payment_apply('+row.id+');">',
+          '<i class="fa fa-cny"></i>',
+          '申请报销</a>  ',
+      ].join('');
+    }else{
+      return '';
+    }
+  }
+  function jump_payment_apply(id){
+    var url="{:url('study_payment_apply')}";
+    url = url+"?study_id="+ id;
+    window.location.href=url;
+  }
+</script>
+{/block}

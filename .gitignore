@@ -1,0 +1,5 @@
+/runtime/
+/Uploads/
+index.php
+/application/database.php
+/application/config.php

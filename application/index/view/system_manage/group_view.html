@@ -1,0 +1,201 @@
+{extend name="common_page" /}
+{block name="private_file"}
+	<link href="../../public/ins/css/xiaowei.css" rel="stylesheet">
+	<script src="../../public/static/js/address.js"></script>
+	<script src="../../public/static/js/xiaowei_common.js"></script>
+{/block}
+{block name="content"}
+<body class="gray-bg" >
+    <div class="wrapper wrapper-content  animated fadeInRight">
+	    <div class="row">
+	    	<select name="dept_list" id="dept_list" class="hidden">
+				{:fill_option($dept_list)}
+			</select>
+	    </div>
+    	<div class="row">
+    		<div class="col-sm-4">
+    			<div class="ibox">
+		        	<div class="ibox-title">
+		        		<h5>组织图</h5>
+		        	</div>
+		        	<div class="ibox-content">
+		        		<div class=" sub_left_menu ">
+							<div class="well">
+								<?php echo $menu ?>
+							</div>
+						</div>
+		        	</div>
+		        </div>
+    		</div>
+    		<div class="col-sm-8">
+    			<div class="ibox">
+		        	<div class="ibox-title">
+		        		<h5>组织信息</h5>
+		        	</div>
+		        	<div class="ibox-content">
+		        		<form id="form_data" name="form_data" method="post" class="well form-horizontal clearfix">
+							<input type="hidden" name="id" id="id">
+							<div class="form-group col-xs-12 hidden">
+								<label class="col-sm-4 control-label" for="dept_no">编码*：</label>
+								<div class="col-sm-8">
+									<input class="form-control" type="text" id="dept_no" name="dept_no" >
+								</div>
+							</div>
+							<div class="form-group col-xs-12">
+								<label class="col-sm-4 control-label" for="name">名称*：</label>
+								<div class="col-sm-8">
+									<input class="form-control" type="text" id="name" name="name" check="require" msg="请输入名称">
+								</div>
+							</div>
+							<div class="form-group col-xs-12">
+								<label class="col-sm-4 control-label" for="short">简称*：</label>
+								<div class="col-sm-8">
+									<input class="form-control" type="text" id="short" name="short" check="require" msg="请输入简称">
+								</div>
+							</div>
+							<div class="form-group col-xs-12">
+								<label class="col-sm-4 control-label" for="dept_name">上级部门*：</label>
+								<div class="col-sm-8">
+									<div class="input-group">
+										<input name="dept_name" class="form-control" id="dept_name" type="text" readonly="readonly" msg="请选择上级部门" check="require"/>
+										<input name="pid" id="pid" type="hidden" msg="请选择上级部门" check="require" />
+										<span class="input-group-btn">
+											<button class="btn btn-sm btn-primary" onclick="select_pid()" type="button">
+												选择
+											</button> </span>
+									</div>
+								</div>
+							</div>
+							<div class="form-group col-xs-12">
+								<label class="col-sm-4 control-label" for="dept_grade_id">部门级别*：</label>
+								<div class="col-sm-8">
+									<select name="dept_grade_id" id="dept_grade_id" class="form-control" msg="请选择部门级别" check="require">
+										<option>选择部门级别</option>
+										{:fill_option($dept_grade_list)}
+									</select>
+								</div>
+							</div>
+							<div class="form-group col-xs-12">
+								<label class="col-sm-4 control-label" for="sort">排序：</label>
+								<div class="col-sm-8">
+									<input class="form-control" type="text" id="sort" name="sort" >
+								</div>
+							</div>
+
+							<div class="form-group col-xs-12">
+								<label class="col-sm-4 control-label" for="is_del">状态*：</label>
+								<div class="col-sm-8">
+									<select   name="is_del" id="is_del" class="form-control">
+										<option  value="0">启用</option>
+										<option value="1">禁用</option>
+									</select>
+								</div>
+							</div>
+							<div class="form-group col-xs-12">
+								<label class="col-sm-4 control-label" for="remark" >其他：</label>
+								<div class="col-sm-8" >
+									<textarea class="form-control" name="remark" id="remark" rows="5" class="col-xs-12" ></textarea>
+								</div>
+							</div>
+							<div class="form-group">
+								<div class="col-xs-4 ">
+								</div>
+								<div class="col-xs-2 ">
+									<a onclick="save();" id="save_btn" class="btn btn-sm btn-primary ">添加</a>
+								</div>
+								<div class="col-xs-2 ">
+									<a onclick="del();" class="btn btn-sm btn-danger ">删除</a>
+								</div>
+							</div>
+						</form>
+		        	</div>
+		        </div>
+    		</div>
+    	</div>
+    </div>
+    <div class="modal fade" id="parentDeptModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" style="width: 650px;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        &times;
+                    </button>
+                    <h4 class="modal-title" id="addNursingModalTitle">
+                        选择上级部门
+                    </h4>
+                    <div class="modal-body">
+						<input type="hidden" name="val" id="val">
+						<input type="hidden" name="name" id="name">
+						<div class="row">
+							<div class="popup_tree_menu">
+								<ul class="tree_menu">
+									<li>
+										<a node="0"><i class="fa fa-angle-right"></i> <span>根节点</span> </a>
+										{$menu}
+									</li>
+								</ul>
+							</div>
+						</div>
+                    </div>
+                    <div class="modal-footer">
+              			<div class="pull-right">
+							<a onclick="select_parent();" class="btn btn-sm btn-primary">确定</a>
+						</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script type="text/javascript">
+	$(document).ready(function() {
+		$(".sub_left_menu .tree_menu a").click(function() {
+			$(".sub_left_menu .tree_menu a.active").removeClass("active");
+			$(this).addClass("active");
+			var id= $(this).attr("node");
+			$.get("{:url('read_dept_info')}",{'id':id},function(data){
+				console.log(data);
+				showdata(data);
+				$("#save_btn").text("保存");
+			});
+			return false;
+		});
+		$(".popup_tree_menu a:not('.disabled')").click(function() {
+				$("#val").val($(this).attr("node"));
+				$("#name").val($(this).children("span").text());
+				$(".tree_menu a.active").removeClass("active");
+				$(this).addClass("active");
+		});
+	});
+	function showdata(result) {
+		for (var s in result) {
+			set_val(s, result[s]);
+		}
+		$("#dept_name").val($("#dept_list option[value='" + $("#pid").val() + "']").text());
+		$("#opmode").val("edit");
+	}
+	function select_pid() {
+		$("#parentDeptModal").modal('show');
+	}
+	function select_parent() {
+		if ($("#name").val().length > 0) {
+			$("#dept_name").val($("#name").val());
+			$("#pid").val($("#val").val());
+		} else {
+			ui_alert("请选择级部门");
+			return false;
+		}
+		$("#parentDeptModal").modal('hide');
+	}
+	function save(){
+		var send_data=$("#form_data").serializeArray();
+		console.log(send_data);
+
+		$.post("{:url('save_dept')}",send_data,function(data){
+			ui_alert(data['msg']);
+			console.log(data);
+		});
+
+	}
+</script>
+{/block}

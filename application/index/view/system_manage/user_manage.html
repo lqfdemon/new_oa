@@ -1,0 +1,283 @@
+{extend name="common_page" /}
+{block name="private_file"}
+	<link href="../../public/ins/css/xiaowei.css" rel="stylesheet">
+	<script src="../../public/static/js/address.js"></script>
+	<script src="../../public/static/js/xiaowei_common.js"></script>
+{/block}
+{block name="content"}
+<body class="gray-bg" onload="page_init();">
+    <div class="wrapper wrapper-content  animated fadeInRight">
+    	<div class="row">
+    		<div class="col-sm-4">
+		        <div class="ibox">
+		        	<div class="ibox-title">
+		        		<h5>员工列表</h5>
+		        	</div>
+		            <div class="ibox-content">
+		            	<div class="row" style="padding: 10px;">
+		            		<a onclick="del();" class="btn btn-sm btn-danger">删除</a>
+		            	</div>
+		            	<div class="row">
+		  					<table id="user_tb"></table>    
+		            	</div>        		
+		            </div>
+		        </div>
+	        </div>
+	        <div class="col-sm-8">
+		        <div class="ibox">
+		        	<div class="ibox-title">
+		        		<h5>员工信息</h5>
+		        	</div>
+		            <div class="ibox-content">
+						<form id="form_data" name="form_data" method="post" class="form-horizontal">
+							<input type="hidden" name="id" id="id">
+							<table class="table table-bordered" >
+								<tr>
+									<th class="col-10">
+									<nobr>
+										员工帐号*
+									</nobr></th>
+									<td colspan="2" class="col-30">
+									<input class="form-control" type="text" id="emp_no" name="emp_no"  check="require" msg="请输入员工帐号" >
+									</td>
+								</tr>
+								<tr>
+									<th>姓名*</th>
+									<td colspan="2">
+									<input  class="form-control" type="text" id="name" name="name" class="input-sm" check="require" msg="请输入姓名">
+									</td>
+								</tr>
+								<tr>
+									<th>性别</th>
+									<td colspan="2">
+									<select name="sex" id="sex" class="form-control col-10">
+										<option  value="male">男</option>
+										<option value="female">女</option>
+									</select></td>
+								</tr>
+								<tr>
+									<th>生日</th>
+									<td colspan="2">
+									<input  type="text" id="birthday" name="birthday" readonly="readonly" class="input-date form-control" readonly="readonly">
+									</td>
+								</tr>
+								<tr>
+									<th>部门*</th>
+									<td class="col-20">
+									<div class="input-group ">
+										<input class="form-control"   id="dept_name" type="text" msg="请选择部门" check="require" readonly="readonly" />
+										<input name="dept_id" id="dept_id" type="hidden" msg="请选择部门" check="require" />
+										<div class="input-group-btn">
+											<a class="btn btn-sm btn-primary" onclick="open_select_dept_modal();" > <i class="fa fa-search" ></i> </a>
+										</div>
+									</div></td>
+									<th class="col-10">职位*</th>
+									<td>
+									<select name="position_id" id="position_id" class="form-control" msg="请选择职位" check="require">
+										<option value="">选择职位</option>
+										{:fill_option($position_list)}
+									</select></td>
+								</tr>
+								<tr>
+									<th>
+									<nobr>
+										办公室电话
+									</nobr></th>
+									<td>
+									<input type="text" id="office_tel" name="office_tel" class="form-control">
+									</td>
+									<th>
+									<nobr>
+										移动电话
+									</nobr></th>
+									<td>
+									<input type="text" id="mobile_tel" name="mobile_tel" class="form-control">
+									</td>
+								</tr>
+								<tr>
+								<tr>
+									<th>电子邮箱</th>
+									<td colspan="3">
+									<input type="text" id="email" name="email" class="form-control">
+									</td>
+								</tr>
+								<tr>
+									<th>
+									<nobr>
+										负责业务
+									</nobr></th>
+									<td colspan="3">
+									<input type="text" id="duty" name="duty" class="form-control">
+									</td>
+								</tr>
+								<tr>
+									<th>状态</th>
+									<td colspan="3">
+									<select class="form-control col-10"  name="is_del" id="is_del">
+										<option  value="0">启用</option>
+										<option value="1">禁用</option>
+									</select></td>
+								</tr>
+								<tr>
+									<th>权限</th>
+									<td colspan="3">
+									<select class="form-control col-10"  name="station_id" id="station_id">
+										{volist name="auth_list" id="auth"}
+											<option  value="{$auth.station_id}">{$auth.name}
+											</option>
+										{/volist}
+									</select></td>
+								</tr>
+								<tr>
+								</tr>
+								<tr>
+									<td colspan="5">
+									<p align="">
+										带*为必填选项
+									</p></td>
+								</tr>
+							</table>
+						</form>   
+						<div class="row">
+							<div class="col-sm-4">
+							</div>
+							<div class="col-sm-4">
+								<a onclick="save();" id="save_btn" class="btn btn-sm btn-primary center">新增</a>
+							</div>
+							<div class="col-sm-4">
+							</div>
+						</div>      		
+		            </div>
+		        </div>
+	        </div>
+        </div>
+    </div>
+    <div class="modal fade" id="deptModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" style="width: 650px;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        &times;
+                    </button>
+                    <h4 class="modal-title" id="addNursingModalTitle">
+                        选择部门
+                    </h4>
+                    <div class="modal-body">
+						<input type="hidden" name="val" id="val">
+						<input type="hidden" name="name" id="name">
+						<div class="row">
+							<div class="popup_tree_menu">
+								<ul class="tree_menu">
+									<li>
+										<a node="0"><i class="fa fa-angle-right"></i> <span>根节点</span> </a>
+										{$menu}
+									</li>
+								</ul>
+							</div>
+						</div>
+                    </div>
+                    <div class="modal-footer">
+              			<div class="pull-right">
+							<a onclick="select_dept();" class="btn btn-sm btn-primary">确定</a>
+						</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script type="text/javascript">
+	$(document).ready(function() {
+		$(".popup_tree_menu a:not('.disabled')").click(function() {
+				$("#val").val($(this).attr("node"));
+				$("#name").val($(this).children("span").text());
+				$(".tree_menu a.active").removeClass("active");
+				$(this).addClass("active");
+		});
+	});
+    function page_init(){
+        init_uder_table();
+    }
+    function init_uder_table(){
+        var url="{:url('get_user_list')}";
+        //未签收
+        var column_list=
+        [
+            {
+                checkbox: true
+            },
+            {
+                field: 'emp_no',
+                title: '员工账号',
+            },
+            {
+                field: 'name',
+                title: '姓名',
+            }
+        ];
+        searchParams=function (params) {
+            return {};
+        };
+        var user_table = new TableInit('user_tb',url,'id',column_list,OnClickFunction,searchParams,true);
+        user_table.Init();
+    }
+    function refresh_user_table(table_id){
+        $('#user_tb').bootstrapTable('refresh');
+        $('#user_tb').bootstrapTable('selectPage', 1);
+    }
+    function OnClickFunction(row){
+    	$("#save_btn").text("保存");
+		$.get("{:url('read_user_info')}",{'id':row.id},function(data){
+			console.log(data);
+			showdata(data);
+		});        
+    }
+	function showdata(result) {
+		console.log(result);
+		$("#form_data select ").each(function() {
+			$(this).find('option:first').attr('selected', 'selected');
+		});
+		for (var s in result) {
+			set_val(s, result[s]);
+		}
+		$("#station_id").val(result.station_id);
+		$("#dept_name").val($("#dept_list option[value='" + $("#dept_id").val() + "']").text());
+	}
+	function open_select_dept_modal(){
+		$("#deptModal").modal('show');
+	}
+	function select_dept() {
+		if ($("#name").val().length > 0) {
+			$("#dept_name").val($("#name").val());
+			$("#dept_id").val($("#val").val());
+		} else {
+			ui_alert("请选择级部门");
+			return false;
+		}
+		$("#deptModal").modal('hide');
+	}
+	function save(){
+		var send_data=$("#form_data").serializeArray();
+		console.log(send_data);
+
+		$.post("{:url('save_user')}",send_data,function(data){
+			ui_alert(data['msg']);
+			refresh_user_table();
+		});
+	}
+    function del(){
+        var selections=[];
+        var id_list = getIdSelections('user_tb');
+        console.log(id_list);
+        $.post("{:url('del_users')}",{'id_list':id_list},function(data){
+            ui_alert(data['msg']);
+            refresh_user_table();
+        });
+    }
+    function getIdSelections(table_id) {
+        return $.map($('#'+table_id).bootstrapTable('getSelections'), function (row) {
+            return row.id;
+        });
+    }
+</script>
+{/block}

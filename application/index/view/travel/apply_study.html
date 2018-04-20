@@ -1,0 +1,216 @@
+{extend name="common_page" /}
+{block name="private_file"}
+  <link href="../../public/ins/css/xiaowei.css" rel="stylesheet">
+  <script src="../../public/static/js/address.js"></script>
+{/block}
+{block name="content"}
+<body class="gray-bg">
+  <div class="wrapper wrapper-content  animated fadeInRight">
+    <div class="ibox">
+      <div class="ibox-content">
+        <h4>学习培训出差申请</h4>
+      </div>
+      <div class="ibox-content">
+        <form class="form-horizontal m-t" id="info_form" class="well form-horizontal">
+          <div class="form-group">
+            <label class="col-sm-2 control-label">会议、培训名称：</label>
+            <div class="col-sm-10">
+              <input type="text" id="name"  name="name" class="form-control">
+            </div>  
+          </div>
+          <div class="form-group">
+            <label class="col-sm-2 control-label">会议、培训地址：</label>
+            <div class="col-sm-10">
+              <input type="text" id="address"  name="address" class="form-control">
+            </div>  
+          </div>
+          <div class="form-group">
+            <label class="col-sm-2 control-label">开始时间：</label>
+            <div class="col-sm-4">
+              <input type="text" id="start_date"  name="start_date" class="form-control">
+            </div> 
+            <label class="col-sm-2 control-label">结束时间：</label>
+            <div class="col-sm-4">
+              <input type="text" id="end_date"  name="end_date" class="form-control">
+            </div> 
+          </div>
+          <div class="form-group">
+            <label class="col-sm-2 control-label">乘坐交通工具：</label>
+            <div class="col-sm-2">
+              <select id="tansport"  name="tansport" class="form-control">
+                <option value="公车">公车</option>
+                <option value="汽车">汽车</option>
+                <option value="火车">火车</option>
+                <option value="飞机">飞机</option>
+                <option value="轮船">轮船</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-2 control-label">会议、培训内容：</label>
+            <div class="col-sm-10">
+            	<textarea id="content"  name="content" class="form-control"></textarea>
+            </div>  
+          </div>
+          <div class="form-group">
+            <label class="col-sm-2 control-label">会议、培训费用说明：</label>
+            <div class="col-sm-10">
+              <textarea id="illustration"  name="illustration" class="form-control"></textarea>
+            </div>  
+          </div>
+          <div class="form-group">
+            <label class="col-sm-2 control-label">科室指定人员：</label>
+            <div class="col-sm-10">
+              <textarea id="personnel"  name="personnel" class="form-control"></textarea>
+            </div>  
+          </div>
+          <div class="form-group">
+            <input type="hidden" id="executor" name="executor" value="">
+            <label class="col-sm-2 control-label" for="name">选择分管领导：</label>
+            <div class="col-sm-10">
+              <div id="actor_wrap" class="inputbox">
+                <a class="pull-right btn btn-link text-center" onclick="popup_address();"><i class="fa fa-user"></i> </a>
+                <div class="wrap" >
+                  <span class="address_list"></span>
+                  <span class="text" >
+                    <input class="letter" type="text"  >
+                  </span>
+                </div>
+                <div class="search dropdown ">
+                  <ul class="dropdown-menu"></ul>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+              <div class="col-sm-4">
+              </div>
+              <div class="col-sm-2">
+                  <button type="button" id="save_btn" class="btn btn-primary center-block" onclick="add();"><i class="fa fa-save"></i> 保存</button>
+              </div>
+              <div class="col-sm-2">
+                  <button type="button" id="save_btn" class="btn btn-default center-block" onclick="back();"><i class="fa fa-back"></i> 返回</button>
+              </div>
+              <div class="col-sm-4">
+              </div>
+          </div>
+        </form>
+			</div>
+		</div>
+	</div>
+
+    <div class="modal fade" id="addressModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" style="width: 650px;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        &times;
+                    </button>
+                    <h4 class="modal-title" id="addNursingModalTitle">
+                        地址簿
+                    </h4>
+                    <div class="modal-body">
+            <div class="popup-container">             
+              <div class="popup-fixed">
+                <div class="popup-header clearfix">
+                  <div class="pull-left">
+                    <label>
+                      <input class="ace"  type="radio" id="rb_dept" name="type" value="dept" >
+                      <span class="lbl">部门</span> </label>
+                    
+                  </div>
+                </div>
+                <div class="popup-body clearfix">
+                  <div class="col-23 pull-left">
+                    <b class="popup-label">地址簿</b>
+                    <div class="popup_tree_menu" >
+                      <div id="dept"  style="height:170px;">
+                        <ul class="tree_menu">
+                          <li>
+                          <a class="" node="1" ><i class="fa fa-angle-right level1"></i><span>区卫计局</span></a>
+                          <ul class="tree_menu">
+                          <li>
+                          <a class="" node="67" ><i class="fa fa-angle-right level2"></i><span>局领导</span></a>
+                          </li>
+                          <li>
+                          <a class="" node="5" ><i class="fa fa-angle-right level2"></i><span>局机关科室</span></a>
+                          </li>
+                          <li>
+                          <a class="" node="68" ><i class="fa fa-angle-right level2"></i><span>卫生监督执法大队</span></a>
+                          </li>
+                          <li>
+                          <a class="" node="6" ><i class="fa fa-angle-right level2"></i><span>区级医疗卫生单位</span></a>
+                          </li>
+                          <li>
+                          <a class="" node="7" ><i class="fa fa-angle-right level2"></i><span>社区卫生服务中心</span></a>
+                          </li>
+                          <li>
+                          <a class="" node="8" ><i class="fa fa-angle-right level2"></i><span>公立卫生院</span></a>
+                          </li>
+                          <li>
+                          <a class="" node="21" ><i class="fa fa-angle-right level2"></i><span>驻区、民营医疗卫生单位</span></a>
+                          </li>
+                          </ul>
+                          </li>
+                          </ul>
+                      </div>
+                    </div>
+                    <b class="popup-label">&nbsp;</b>
+                    <div>
+                      <div id="addr_list" style="width:100%;height:170px;"></div>
+                    </div>
+                  </div>
+                  <div class="col-30 pull-left">
+                    <div class="col-7 pull-left text-center mid" style="margin-top: 24px;">
+                      <a onclick="add_address('rc');" class="btn btn-sm btn-primary">选择</a>
+                      <a onclick="select_all();" class="btn btn-sm btn-primary">全选</a>
+                    </div>
+                    <div class="clearfix" >
+                      <b class="popup-label">参与人员</b><span id="rc_count"></span>
+                      <div class="col-23 pull-right">
+                        <div id="rc" class="selected" style="width:100%;height:369px;overflow:hidden">
+                          <ul></ul>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+                    </div>
+                    <div class="modal-footer">
+                    <div class="pull-right">
+              <a onclick="save();" class="btn btn-sm btn-primary">确定</a>
+            </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script type="text/javascript">
+  $(document).ready( function (){
+    laydate({'elem':'#start_date'});
+    laydate({'elem':'#end_date'});
+  });
+  function add(){
+    $("#executor").val("");//清空接受列表中的人员;
+    $("#actor_wrap span.address_list span").each(function() {
+      $("#executor").val($("#executor").val() + $(this).find("b").text() + '|' + $(this).attr("data") + ";");
+    });
+
+    url="{:url('add_study_apply')}";
+    send_data = $("#info_form").serializeArray();
+    $.post(url,send_data,function(data){
+      ui_alert(data['msg']);
+      if(data['code']){
+        $("#save_btn").hide();
+      }
+    });
+  }
+  function back(){
+    var url= "{:url('manage')}";
+    window.location.href=url;
+  }
+</script>
+{/block}

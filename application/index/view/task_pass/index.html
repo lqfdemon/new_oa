@@ -1,0 +1,612 @@
+{extend name="common_page" /}
+{block name="private_file"}
+	<link href="../../public/ins/css/xiaowei.css" rel="stylesheet">
+    <script src="../../public/static/js/address.js"></script>
+    <!-- jstree -->
+    <script src="../../public/h_admin/js/plugins/jsTree/jstree.min.js"></script>
+    <link href="../../public/h_admin/css/plugins/jsTree/style.min.css" rel="stylesheet">
+{/block}
+{block name="content"}
+<body class="gray-bg" onload="page_init();">
+	<div class="wrapper wrapper-content  animated fadeInRight">
+		<div class="ibox">
+			<div class="ibox-title">
+				<h5>公文流转</h5>
+            </div>
+            <div class="ibox-content">
+            	<div class="row">
+            		<a type="button" href="{:url('index/task_pass/start_pass')}" class="btn btn-primary" onclick=""><i class="fa fa-edit"></i> 发起</a>
+            	</div>
+            	<div class="row">
+	            	<form class="form-horizontal m-t" id="search_condition_form">
+	                    <div class="form-group">             
+	                        <label class="col-sm-2 control-label">公文标题：</label>
+	                         <div class="col-sm-6">
+	                            <input type="text" id="title"  name="title" class="form-control">
+	                        </div>
+	                        <div class="col-sm-3">
+	                            <button type="button"  class="btn btn-primary" onclick="refresh_all_table();"><i class="fa fa-search"></i> 搜索</button>
+	                        </div>
+	                    </div>
+	                </form>
+                </div>
+                <div class="row" style="padding-top: 30px">
+                    <ul class="nav nav-tabs">
+                        <li class="active">
+                            <a data-toggle="tab" href="#tab-1"><i class="fa fa-folder"></i> 待处理&nbsp;<span class="label label-warning pull-right" id="not_finished_task_num">16</span></a>
+                        </li>
+                        <li class=""><a data-toggle="tab" href="#tab-2"><i class="fa fa-folder-open"></i> 已处理&nbsp;</a>
+                        </li>
+                        <li class=""><a data-toggle="tab" href="#tab-3"><i class="fa fa-envelope"></i> 发起的公文流转&nbsp;</a>
+                        </li>
+                    </ul> 
+                    <div class="tab-content">
+                        <div id="tab-1" class="tab-pane active" style="padding-top: 10px">
+                            <table id="notFinishedTable"></table>
+                        </div> 
+                        <div id="tab-2" class="tab-pane" style="padding-top: 30px">
+                            <table id="finishedTable"></table>
+                        </div>
+                        <div id="tab-3" class="tab-pane" style="padding-top: 30px">
+                            <table id="sendTable"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+	</div>
+    <div class="modal fade" id="readModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        &times;
+                    </button>
+                    <h4 class="modal-title" id="addNursingModalTitle">
+                        详情
+                    </h4>
+                </div>
+                <div class="modal-body">
+                    <div class="mail-box">
+                        	<table class="table">
+                        		<thead>
+	                                <tr>
+	                        			<th>处理人</th>
+	                        			<th>类型</th>
+	                        			<th>意见</th>
+	                        		</tr>
+                        		</thead>
+                        		<tbody id="suggestion_tb_body">
+                        			
+                        		</tbody>
+                        	</table>
+                        <div class="mail-attachment">
+                            <p>
+                                <h4 id="attachment_num"></h4>
+                            </p>
+                            <div >
+                                <div class="row" id="attachment_content">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" id="readModalFooter">
+					<form method='post' id="suggestion_data" name="suggestion_data" class="well form-horizontal">
+						<input type="hidden" id="task_pass_log_id" name="task_pass_log_id" >
+						<input type="hidden" id="task_pass_id" name="task_pass_id" >
+						<input type="hidden" id="executor" name="executor" value="">
+						<div class="form-group">
+							<label class="col-sm-2 control-label" for="name">处理意见：</label>
+							<div class="col-sm-10">
+								<input class="form-control" type="text" id="suggestion" name="suggestion" value=""  check="require">
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="col-sm-2 control-label" for="name">转给谁继续填写意见：</label>
+							<div class="col-sm-10">
+								<div id="actor_wrap" class="inputbox">
+									<a class="pull-right btn btn-link text-center" onclick="popup_address();"><i class="fa fa-user"></i> </a>
+									<div class="wrap" >
+										<span class="address_list"></span>
+										<span class="text" >
+											<input class="letter" type="text"  >
+										</span>
+									</div>
+									<div class="search dropdown ">
+										<ul class="dropdown-menu"></ul>
+									</div>
+								</div>
+							</div>
+						</div>
+                        <div class="form-group">
+                            <button type="button" class="btn btn-primary center-block" id="send" onclick="finish_do();"><i class="fa fa-save"></i>&nbsp;&nbsp;完成处理</button>
+                        </div>
+                    </form>
+                    
+                    <form method='post' id="reject_data" name="reject_data" class="well form-horizontal">
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label" for="name">填写退回意见:</label>
+                            <div class="col-sm-10">
+                                <input class="form-control" type="text" id="suggestion" name="suggestion" value="" check="require">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <button type="button" class="btn btn-danger center-block" id="send" onclick="reject_do();">
+                                <i class="fa fa-close"></i>&nbsp;&nbsp;退回上一步</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>  
+    <div class="modal fade" id="addressModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" style="width: 650px;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        &times;
+                    </button>
+                    <h4 class="modal-title" id="addNursingModalTitle">
+                        地址簿
+                    </h4>
+                    <div class="modal-body">
+						<div class="popup-container">							
+							<div class="popup-fixed">
+								<div class="popup-header clearfix">
+									<div class="pull-left">
+										<label>
+											<input class="ace"  type="radio" id="rb_dept" name="type" value="dept" >
+											<span class="lbl">部门</span> </label>
+										
+									</div>
+								</div>
+								<div class="popup-body clearfix">
+									<div class="col-23 pull-left">
+										<b class="popup-label">地址簿</b>
+										<div class="popup_tree_menu" >
+											<div id="dept"  style="height:170px;">
+												<ul class="tree_menu">
+													<li>
+													<a class="" node="1" ><i class="fa fa-angle-right level1"></i><span>区卫计局</span></a>
+													<ul class="tree_menu">
+													<li>
+													<a class="" node="67" ><i class="fa fa-angle-right level2"></i><span>局领导</span></a>
+													</li>
+													<li>
+													<a class="" node="5" ><i class="fa fa-angle-right level2"></i><span>局机关科室</span></a>
+													</li>
+													<li>
+													<a class="" node="68" ><i class="fa fa-angle-right level2"></i><span>卫生监督执法大队</span></a>
+													</li>
+													<li>
+													<a class="" node="6" ><i class="fa fa-angle-right level2"></i><span>区级医疗卫生单位</span></a>
+													</li>
+													<li>
+													<a class="" node="7" ><i class="fa fa-angle-right level2"></i><span>社区卫生服务中心</span></a>
+													</li>
+													<li>
+													<a class="" node="8" ><i class="fa fa-angle-right level2"></i><span>公立卫生院</span></a>
+													</li>
+													<li>
+													<a class="" node="21" ><i class="fa fa-angle-right level2"></i><span>驻区、民营医疗卫生单位</span></a>
+													</li>
+													</ul>
+													</li>
+													</ul>
+											</div>
+										</div>
+										<b class="popup-label">&nbsp;</b>
+										<div>
+											<div id="addr_list" style="width:100%;height:170px;"></div>
+										</div>
+									</div>
+									<div class="col-30 pull-left">
+										<div class="col-7 pull-left text-center mid" style="margin-top: 24px;">
+											<a onclick="add_address('rc');" class="btn btn-sm btn-primary">选择</a>
+											<a onclick="select_all();" class="btn btn-sm btn-primary">全选</a>
+										</div>
+										<div class="clearfix" >
+											<b class="popup-label">参与人员</b><span id="rc_count"></span>
+											<div class="col-23 pull-right">
+												<div id="rc" class="selected" style="width:100%;height:369px;overflow:hidden">
+													<ul></ul>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+                    </div>
+                    <div class="modal-footer">
+              			<div class="pull-right">
+							<a onclick="save();" class="btn btn-sm btn-primary">确定</a>
+						</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="resultModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        &times;
+                    </button>
+                    <h4 class="modal-title" id="addNursingModalTitle">
+                        填写处理结果
+                    </h4>
+                </div>
+                <div class="modal-body">
+                	<form method='post' id="result_form" name="result_form" class="well form-horizontal">
+						<input type="hidden" id="task_pass_id" name="task_pass_id" >
+						<div class="form-group">
+							<label class="col-sm-2 control-label" for="name">处理结果：</label>
+							<div class="col-sm-10">
+								<textarea  class="form-control" type="text" id="result" name="result"></textarea>
+							</div>
+						</div>
+					</form>
+                </div>
+                <div class="modal-footer" id="readModalFooter">
+					<div class="row">
+						<button type="button" class="btn btn-primary center-block" id="send" onclick="save_result();"><i class="fa fa-save"></i>&nbsp;&nbsp;保存</button>
+					</div>
+                </div>
+            </div>
+        </div>
+    </div>  
+    <div class="modal fade" id="processModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        &times;
+                    </button>
+                    <h4 class="modal-title" id="addNursingModalTitle">
+                        处理进程
+                    </h4>
+                </div>
+                <div class="modal-body">
+                    <div id="class_tree"></div>
+                </div>
+                <div class="modal-footer" id="readModalFooter">
+
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script type="text/javascript">
+	function page_init(){
+		init_not_finished_table();
+		init_finished_table();
+		init_send_table();
+	}
+	function init_not_finished_table(){
+        var url="{:url('get_task_pass_list')}";
+        //未签收
+        var column_list=
+        [
+            {
+                field: 'form_title',
+                title: '来文标题',
+            },
+            {
+                field: 'form_unit',
+                title: '来文单位：',
+            },
+            {
+                field: 'form_time',
+                title: '来文时间',
+            },
+            {
+                field: 'form_id',
+                title: '来文文号',
+            },
+            {
+                field: 'form_leavel',
+                title: '来文等级',
+            },
+            {
+                field: 'file_flag',
+                title: '附件',
+                formatter: fileFlagFormatter
+            }
+        ];
+        searchParams=function (params) {
+            var title =$("#search_condition_form #title").val();
+            var data = {'type':'not_finished','title':title};
+            return data;
+        };
+        var notFinishedTable = new TableInit('notFinishedTable',url,'id',column_list,OnClickFunction,searchParams,false);
+        notFinishedTable.Init();
+    }
+    function fileFlagFormatter(value, row, index) {
+        if(row.file_flag){
+            return [
+                '<i class="fa fa-paperclip"></i>',
+            ].join('');
+        }else{
+            return '';
+        }
+    }
+    function OnClickFunction(row){
+    	$('#suggestion_data #task_pass_log_id').val(row.id);
+    	$('#suggestion_data #task_pass_id').val(row.task_pass_id);
+    	show_file_list(row);
+        $.get("{:url('get_suggestion_list')}",{'task_pass_id':row.task_pass_id},function(data){
+        	console.log(data);
+        	show_suggestion_list(data);
+        	$("#readModalFooter").show();
+        	$('#readModal').modal('show');
+        });
+    }
+    function show_suggestion_list(data){
+    		$("#readModal #suggestion_tb_body").empty();
+        	var html="";
+            for (var i = 0; i < data.length; i++) {
+            	var status=""
+            	if(data[i].status == 0){
+            		status="未填写意见";
+            	}else if(data[i].status == 1){
+            		status="已填写意见";
+            	}else if(data[i].status == 2){
+            		status="处理结果";
+            	}else{
+            		status="拟办意见";
+            	}
+                html +=[
+                    '<tr>',
+                    	'<td>'+data[i].user_name+'</td>',
+                    	'<td>'+status+'</td>',
+                    	'<td>'+data[i].suggestion+'</td>',
+                    '</tr>'
+                ].join('');
+            }
+            $("#readModal #suggestion_tb_body").html(html);
+    }
+    function show_file_list(row){
+		$("#readModal #attachment_content").empty(html);
+        if(row.file_list.length>0){
+            var file_list = row.file_list;
+            $("#readModal #attachment_num").html("<i class='fa fa-paperclip'></i>"+row.file_list.length+"个附件 - ");
+            var html="";
+            for (var i = 0; i < file_list.length; i++) {
+                html +=[
+                    '<div class="file col-sm-4">',
+                        '<a href="'+file_list[i]['file_url']+'">',
+                            '<span class="corner"></span>',
+                            '<div class="icon">',
+                                '<i class="fa fa-file"></i>',
+                            '</div>',
+                            '<div class="file-name">'+file_list[i]['file_name'],
+                            '</div>',
+                        '</a>',
+                    '</div>'
+                ].join('');
+            }
+            $("#readModal #attachment_content").html(html);
+        }
+    }
+    function finish_do(){
+		$("#executor").val("");//清空接受列表中的人员;
+		$("#actor_wrap span.address_list span").each(function() {
+			$("#executor").val($("#executor").val() + $(this).find("b").text() + '|' + $(this).attr("data") + ";");
+		});
+    	var send_data=$("#suggestion_data").serializeArray();
+		console.log(send_data);
+        $('#readModal').modal('hide');
+		$.post("{:url('tansform_pass')}",send_data,function(data){
+			ui_alert(data['msg']);
+			console.log(data);
+		});
+    }
+    function reject_do(){
+        var task_pass_id = $("#suggestion_data #task_pass_id").val();
+        var task_pass_log_id = $("#suggestion_data #task_pass_log_id").val();
+        var suggestion = $("#reject_data #suggestion").val();
+        var send_data={
+            'task_pass_id':task_pass_id,
+            'task_pass_log_id':task_pass_log_id,
+            'suggestion':suggestion,
+        };
+        console.log(send_data);
+        $('#readModal').modal('hide');
+        $.post("{:url('reject_pass')}",send_data,function(data){
+            ui_alert(data['msg']);
+            console.log(data);
+        });        
+    }
+    /*****************************已处理的公文********************/
+	function init_finished_table(){
+        var url="{:url('get_task_pass_list')}";
+        //未签收
+        var column_list=
+        [
+            {
+                field: 'form_title',
+                title: '来文标题',
+            },
+            {
+                field: 'form_unit',
+                title: '来文单位：',
+            },
+            {
+                field: 'form_time',
+                title: '来文时间',
+            },
+            {
+                field: 'form_id',
+                title: '来文文号',
+            },
+            {
+                field: 'form_leavel',
+                title: '来文等级',
+            },
+            {
+                field: 'file_flag',
+                title: '附件',
+                formatter: fileFlagFormatter
+            }
+        ];
+        searchParams=function (params) {
+            var title =$("#search_condition_form #title").val();
+            var data = {'type':'finished','title':title};
+            return data;
+        };
+        var finishedTable = new TableInit('finishedTable',url,'id',column_list,finishedOnClickFunction,searchParams,false);
+        finishedTable.Init();
+    }
+    function finishedOnClickFunction(row){
+    	$('#suggestion_data #task_pass_log_id').val(row.id);
+    	$('#suggestion_data #task_pass_id').val(row.task_pass_id);
+    	show_file_list(row);
+        $.get("{:url('get_suggestion_list')}",{'task_pass_id':row.task_pass_id},function(data){
+        	console.log(data);
+        	show_suggestion_list(data);
+            $("#readModalFooter").hide();
+        	$('#readModal').modal('show');
+        });
+    }
+
+    /*****************************发起的公文流转********************/
+	function init_send_table(){
+        var url="{:url('get_send_pass_list')}";
+        //未签收
+        var column_list=
+        [
+        	{
+                field: 'status_str',
+                title: '状态',
+            },
+            {
+                field: 'form_title',
+                title: '来文标题',
+            },
+            {
+                field: 'form_unit',
+                title: '来文单位：',
+            },
+            {
+                field: 'form_time',
+                title: '来文时间',
+            },
+            {
+                field: 'form_id',
+                title: '来文文号',
+            },
+            {
+                field: 'form_leavel',
+                title: '来文等级',
+            },
+            {
+                field: 'operation',
+                title: '查看处理进程',
+                formatter: checkOperationFormatter
+            },
+            {
+                field: 'operation',
+                title: '填写处理结果操作',
+                formatter: sendOperationFormatter
+            },
+            {
+                field: 'operation',
+                title: '打印处理单',
+                formatter: printOperationFormatter
+            },
+            {
+                field: 'file_flag',
+                title: '附件',
+                formatter: fileFlagFormatter
+            }
+        ];
+        searchParams=function (params) {
+            var title =$("#search_condition_form #title").val();
+            var data = {};
+            return data;
+        };
+        var sendTable = new TableInit('sendTable',url,'id',column_list,sendOnClickFunction,searchParams,false);
+        sendTable.Init();
+    }
+    var hide_row_onclick_flag = false;
+    function sendOnClickFunction(row){
+    	if(hide_row_onclick_flag){
+    		hide_row_onclick_flag = false;
+    		return;
+    	}
+    	$('#suggestion_data #task_pass_id').val(row.task_pass_id);
+    	show_file_list(row);
+        $.get("{:url('get_suggestion_list')}",{'task_pass_id':row.task_pass_id},function(data){
+        	console.log(data);
+        	show_suggestion_list(data);
+            $("#readModalFooter").hide();
+        	$('#readModal').modal('show');
+        });
+    }
+    function sendOperationFormatter(value, row, index) {
+    	if(row.status == 1){
+	        return [
+	            '<a  title="填写处理结果" onclick="write_result('+row['task_pass_id']+');">',
+                '<i class="fa fa-edit"></i>',
+	            '填写处理结果',
+	            '</a>  ',
+	        ].join('');
+    	}
+    }
+    function write_result(task_pass_id){
+    	hide_row_onclick_flag =true;
+    	$('#resultModal #result_form #task_pass_id').val(task_pass_id);
+    	$('#resultModal #result_form #result').val('');
+    	$('#resultModal').modal('show');
+    }
+    function save_result(){
+    	var send_data=$("#result_form").serializeArray();
+		$.post("{:url('save_result')}",send_data,function(data){
+			$('#resultModal').modal('hide');
+			ui_alert(data['msg']);
+            $('#sendTable').bootstrapTable('refresh');
+            $('#sendTable').bootstrapTable('selectPage', 1);
+		});
+
+    }
+    function checkOperationFormatter(value, row, index) {
+        return [
+            '<a  title="查看处理进程" onclick="check_process(' + row['task_pass_id'] + ');">',
+            '<i class="fa fa-search"></i>',
+            '查看处理进程',
+            '</a>  ',
+        ].join('');
+    }
+
+    function check_process(task_pass_id){
+        hide_row_onclick_flag = true;
+        $.post("{:url('get_pass_log_status')}", { 'task_pass_id': task_pass_id }, function (data) {
+            console.log(data);
+            $('#class_tree').data('jstree', false).empty();
+            $('#class_tree').jstree({
+                'core': {
+                    'data': data,
+                },
+            });
+            $("#processModal").modal('show');
+        });
+    }
+
+    function printOperationFormatter(value, row, index) {
+        if(row.status == 2){
+            var url="{:url('print_task_pass_result')}"+"?task_pass_id="+row['task_pass_id'];
+            console.log(url);
+            return [
+                '<a  title="打印处理单" target="_blank" href="'+url+'">',
+                '<i class="fa fa-print"></i>',
+                '打印处理单',
+                '</a>  ',
+            ].join('');
+        }
+    }
+
+</script>
+{/block}

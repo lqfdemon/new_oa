@@ -1,0 +1,488 @@
+{extend name="common_page" /}
+{block name="private_file"}
+  <link href="../../public/ins/css/xiaowei.css" rel="stylesheet">
+  <script src="../../public/static/js/address.js"></script>
+{/block}
+{block name="content"}
+<body class="gray-bg">
+  <div class="wrapper wrapper-content  animated fadeInRight">
+    <div class="ibox">
+      <div class="ibox-title">
+        <h4>基础信息</h4>
+      </div>
+      <div class="ibox-content">
+        <form class="form-horizontal m-t" id="info_form" class="well form-horizontal">
+          <div class="form-group">
+            <input type="hidden" id="id" name="id" value="{$id}">
+            <input type="hidden" id="study_id" name="study_id" value="{$study_id}">
+            <input type="hidden" id="user_id" name="user_id" value="{$user_id}">
+            <label class="col-sm-2 control-label">报账人：</label>
+            <div class="col-sm-4">
+              <input type="text" id="name"  name="name" class="form-control" value="{$user_name}" readonly="">
+            </div> 
+            <label class="col-sm-2 control-label">报账科室：</label>
+            <div class="col-sm-4">
+              <input type="text" id="dept"  name="dept" class="form-control">
+            </div>  
+          </div>
+          <div class="form-group">
+            <label class="col-sm-2 control-label">报销单据（/张）：</label>
+            <div class="col-sm-4">
+              <input type="text" id="document_num"  name="document_num" class="form-control">
+            </div>  
+            <label class="col-sm-2 control-label">报账日期：</label>
+            <div class="col-sm-4">
+              <input type="text" id="date"  name="date" class="form-control">
+            </div> 
+          </div>
+          <div class="form-group">
+            <label class="col-sm-2 control-label">资金来源：</label>
+            <div class="col-sm-4">
+              <input type="text" id="sources_of_funds"  name="sources_of_funds" class="form-control">
+            </div>  
+            <label class="col-sm-2 control-label">出差事由：</label>
+            <div class="col-sm-4">
+              <input type="text" id="reason"  name="reason" class="form-control" >
+            </div>  
+          </div>
+          <div class="form-group">
+            <label class="col-sm-2 control-label">备注：</label>
+            <div class="col-sm-10">
+            	<textarea id="remark"  name="remark" class="form-control"></textarea>
+            </div>  
+          </div>
+          <div class="form-group">
+            <input type="hidden" id="executor" name="executor" value="">
+            <label class="col-sm-2 control-label" for="name">选择分管领导：</label>
+            <div class="col-sm-10">
+              <div id="actor_wrap" class="inputbox">
+                <a class="pull-right btn btn-link text-center" onclick="popup_address();"><i class="fa fa-user"></i> </a>
+                <div class="wrap" >
+                  <span class="address_list"></span>
+                  <span class="text" >
+                    <input class="letter" type="text"  >
+                  </span>
+                </div>
+                <div class="search dropdown ">
+                  <ul class="dropdown-menu"></ul>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+              <div class="col-sm-2">
+              </div>
+              <div class="col-sm-2">
+                  <button type="button" id="save_btn" class="btn btn-primary center-block" onclick="add();"><i class="fa fa-save"></i> 保存</button>
+              </div>
+              <div class="col-sm-2">
+                  <button type="button" id="pre_view_btn" class="btn btn-primary center-block" onclick="pre_view();"><i class="fa fa-print"></i>预览报销单</button>
+              </div>
+              <div class="col-sm-2">
+                  <button type="button" id="submit_btn" class="btn btn-danger center-block" onclick="submit_study_payment();"><i class="fa fa-check"></i>确认提交报销</button>
+              </div>
+              <div class="col-sm-2">
+                  <button type="button" id="back_btn" class="btn btn-default center-block" onclick="back();"><i class="fa fa-back"></i> 返回</button>
+              </div>
+              <div class="col-sm-4">
+              </div>
+          </div>
+        </form>
+			</div>
+		</div>
+    <div class="ibox">
+      <div class="ibox-title">
+        <h4>费用详情</h4>
+      </div>
+      <div class="ibox-content">
+        <div class="row">
+          <div class="col-sm-12" style="padding: 20px;">
+            <div id="toolbar" class="btn-group">
+              <button id="btn_add" type="button" class="btn btn-default" onclick="show_detail_modal();">
+                <span class="fa fa-plus" aria-hidden="true"></span>新增费用详情
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <table id="detail_tb"></table>
+        </div>
+      </div>
+    </div>
+	</div>
+
+  <div class="modal fade" id="detailModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                &times;
+            </button>
+            <h4 class="modal-title" >
+                费用详情
+            </h4>
+        </div>
+        <div class="modal-body">
+          <div class="row">
+            <form class="form-horizontal m-t" id="detail_form">
+              <input type="hidden" name="study_payment_list_id" id="study_payment_list_id">
+              <div class="form-group">
+                <label class="col-sm-2 control-label">差旅姓名：</label>
+                <div class="col-sm-2">
+                  <input type="text" id="name"  name="name" class="form-control" >
+                </div>
+                <label class="col-sm-2 control-label">起始日期：</label>
+                <div class="col-sm-2">
+                  <input type="text" id="start_date"  name="start_date" class="form-control" >
+                </div> 
+                <label class="col-sm-2 control-label">结束日期：</label>
+                <div class="col-sm-2">
+                  <input type="text" id="end_date"  name="end_date" class="form-control" >
+                </div>   
+              </div>
+              <div class="form-group">
+                <label class="col-sm-2 control-label">培训费用：</label>
+                <div class="col-sm-2">
+                  <input type="text" id="study_cost"  name="study_cost" class="form-control" >
+                </div> 
+                <label class="col-sm-2 control-label">交通费用：</label>
+                <div class="col-sm-2">
+                  <input type="text" id="trans_cost"  name="trans_cost" class="form-control" >
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="col-sm-2 control-label">住宿费天数：</label>
+                <div class="col-sm-2">
+                  <input type="text" id="hotel_days"  name="hotel_days" class="form-control" >
+                </div> 
+                <label class="col-sm-2 control-label">住宿费标准：</label>
+                <div class="col-sm-2">
+                  <input type="text" id="hotel_standard"  name="hotel_standard" class="form-control" onchange="hotel_standard_change()">
+                </div>
+                <label class="col-sm-2 control-label">住宿费金额：</label>
+                <div class="col-sm-2">
+                  <input type="text" id="hotel_cost"  name="hotel_cost" class="form-control" readonly="">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="col-sm-2 control-label">伙食费天数：</label>
+                <div class="col-sm-2">
+                  <input type="text" id="food_days"  name="food_days" class="form-control" >
+                </div> 
+                <label class="col-sm-2 control-label">伙食费标准：</label>
+                <div class="col-sm-2">
+                  <input type="text" id="food_standard"  name="food_standard" class="form-control" onchange="food_standard_change()">
+                </div>
+                <label class="col-sm-2 control-label">伙食费金额：</label>
+                <div class="col-sm-2">
+                  <input type="text" id="food_cost"  name="food_cost" class="form-control" readonly="">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="col-sm-2 control-label">公杂费天数：</label>
+                <div class="col-sm-2">
+                  <input type="text" id="other_days"  name="other_days" class="form-control" >
+                </div> 
+                <label class="col-sm-2 control-label">公杂费标准：</label>
+                <div class="col-sm-2">
+                  <input type="text" id="other_standard"  name="other_standard" class="form-control" onchange="other_standard_change()">
+                </div>
+                <label class="col-sm-2 control-label">公杂费金额：</label>
+                <div class="col-sm-2">
+                  <input type="text" id="other_cost"  name="other_cost" class="form-control" readonly="">
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button"  class="btn btn-primary" onclick="save_detail()"><i class="fa fa-check"></i> 确认添加</button>
+          <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+        </div>
+      </div>
+    </div>
+  </div><!-- /.modal -->
+
+    <div class="modal fade" id="addressModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" style="width: 650px;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        &times;
+                    </button>
+                    <h4 class="modal-title" id="addNursingModalTitle">
+                        地址簿
+                    </h4>
+                    <div class="modal-body">
+            <div class="popup-container">             
+              <div class="popup-fixed">
+                <div class="popup-header clearfix">
+                  <div class="pull-left">
+                    <label>
+                      <input class="ace"  type="radio" id="rb_dept" name="type" value="dept" >
+                      <span class="lbl">部门</span> </label>
+                    
+                  </div>
+                </div>
+                <div class="popup-body clearfix">
+                  <div class="col-23 pull-left">
+                    <b class="popup-label">地址簿</b>
+                    <div class="popup_tree_menu" >
+                      <div id="dept"  style="height:170px;">
+                        <ul class="tree_menu">
+                          <li>
+                          <a class="" node="1" ><i class="fa fa-angle-right level1"></i><span>区卫计局</span></a>
+                          <ul class="tree_menu">
+                          <li>
+                          <a class="" node="67" ><i class="fa fa-angle-right level2"></i><span>局领导</span></a>
+                          </li>
+                          <li>
+                          <a class="" node="5" ><i class="fa fa-angle-right level2"></i><span>局机关科室</span></a>
+                          </li>
+                          <li>
+                          <a class="" node="68" ><i class="fa fa-angle-right level2"></i><span>卫生监督执法大队</span></a>
+                          </li>
+                          <li>
+                          <a class="" node="6" ><i class="fa fa-angle-right level2"></i><span>区级医疗卫生单位</span></a>
+                          </li>
+                          <li>
+                          <a class="" node="7" ><i class="fa fa-angle-right level2"></i><span>社区卫生服务中心</span></a>
+                          </li>
+                          <li>
+                          <a class="" node="8" ><i class="fa fa-angle-right level2"></i><span>公立卫生院</span></a>
+                          </li>
+                          <li>
+                          <a class="" node="21" ><i class="fa fa-angle-right level2"></i><span>驻区、民营医疗卫生单位</span></a>
+                          </li>
+                          </ul>
+                          </li>
+                          </ul>
+                      </div>
+                    </div>
+                    <b class="popup-label">&nbsp;</b>
+                    <div>
+                      <div id="addr_list" style="width:100%;height:170px;"></div>
+                    </div>
+                  </div>
+                  <div class="col-30 pull-left">
+                    <div class="col-7 pull-left text-center mid" style="margin-top: 24px;">
+                      <a onclick="add_address('rc');" class="btn btn-sm btn-primary">选择</a>
+                      <a onclick="select_all();" class="btn btn-sm btn-primary">全选</a>
+                    </div>
+                    <div class="clearfix" >
+                      <b class="popup-label">参与人员</b><span id="rc_count"></span>
+                      <div class="col-23 pull-right">
+                        <div id="rc" class="selected" style="width:100%;height:369px;overflow:hidden">
+                          <ul></ul>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+                    </div>
+                    <div class="modal-footer">
+                    <div class="pull-right">
+              <a onclick="save();" class="btn btn-sm btn-primary">确定</a>
+            </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script type="text/javascript">
+  $(document).ready( function (){
+    laydate({'elem':'#date'});
+    laydate({'elem':'#start_date'});
+    laydate({'elem':'#end_date'});
+    $("#btn_add").hide();
+    $("#pre_view_btn").hide();
+    $("#submit_btn").hide();
+  });
+  function add(){
+    $("#executor").val("");//清空接受列表中的人员;
+    $("#actor_wrap span.address_list span").each(function() {
+      $("#executor").val($("#executor").val() + $(this).find("b").text() + '|' + $(this).attr("data") + ";");
+    });
+
+    url="{:url('add_study_payment_apply')}";
+    send_data = $("#info_form").serializeArray();
+    console.log(send_data);
+    $.post(url,send_data,function(data){
+      ui_alert(data['msg']);
+      console.log(data);
+      if(data['code']){
+        $("#detail_form #study_payment_list_id").val(data['data']);
+        $("#save_btn").hide();
+        $("#btn_add").show();
+        $("#pre_view_btn").show();
+        $("#submit_btn").show();
+      }
+    });
+  }
+  function back(){
+    var url= "{:url('manage')}";
+    window.location.href=url;
+  }
+  function show_detail_modal(){
+    clean_detail_form();
+    $("#detailModal").modal('show');
+  }
+  function hotel_standard_change(){
+    var standard = $("#hotel_standard").val();
+    var days = $("#hotel_days").val();
+    var cost = standard*days;
+    $("#hotel_cost").val(cost); 
+  }
+  function food_standard_change(){
+    var standard = $("#food_standard").val();
+    var days = $("#food_days").val();
+    var cost = standard*days;
+    $("#food_cost").val(cost);     
+  }
+  function other_standard_change(){
+    var standard = $("#other_standard").val();
+    var days = $("#other_days").val();
+    var cost = standard*days;
+    $("#other_cost").val(cost);   
+    var cost = standard*days;
+    $("#other_cost").val(cost);    
+  }
+  function clean_detail_form(){
+    $("#detail_form #name").val('');
+    $("#detail_form #start_date").val('');
+    $("#detail_form #end_date").val('');
+    $("#detail_form #study_cost").val('');
+    $("#detail_form #trans_cost").val('');
+    $("#detail_form #hotel_days").val('');
+    $("#detail_form #hotel_standard").val('');
+    $("#detail_form #hotel_cost").val('');
+    $("#detail_form #food_days").val('');
+    $("#detail_form #food_standard").val('');
+    $("#detail_form #food_cost").val('');
+    $("#detail_form #other_days").val('');
+    $("#detail_form #other_standard").val('');
+    $("#detail_form #other_cost").val('');
+  }
+  function save_detail(){
+    url="{:url('add_study_payment_detail')}";
+    send_data = $("#detail_form").serializeArray();
+    console.log(send_data);
+    $.post(url,send_data,function(data){
+      ui_alert(data['msg']);
+      console.log(data);
+      $("#detailModal").modal('hide');
+      refresh_table();
+    });
+  }
+/***********************详情表*************************/
+  $(document).ready( function (){
+    var studyTable = new StudyTableInit();
+    studyTable.Init();
+  });
+  var StudyTableInit = function () {
+    var oStudyTableInit = new Object();
+    //初始化Table
+    oStudyTableInit.Init = function () {
+      $('#detail_tb').bootstrapTable({
+        url: "{:url('get_study_payment_details')}",         //请求后台的URL（*）
+        method: 'get',                      //请求方式（*）
+        striped: false,                      //是否显示行间隔色
+        pageSize: 10,                       //每页的记录行数（*）
+        pageList: [10, 20],        //可供选择的每页的行数（*）       //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+        pagination: true,                   //是否显示分页（*）
+        queryParams: oStudyTableInit.queryParams,//传递参数（*）
+        uniqueId: "id",
+        columns: [
+          {
+              field: 'name',
+              title: '名称',
+          },
+          {
+              field: 'start_date',
+              title: '开始日期',
+          },
+          {
+              field: 'end_date',
+              title: '结束日期',
+          },
+          {
+              field: 'study_cost',
+              title: '培训费用',
+          },
+          {
+              field: 'trans_cost',
+              title: '交通费用',
+          },
+          {
+              field: 'hotel_days',
+              title: '住宿天数',
+          },
+          {
+              field: 'hotel_standard',
+              title: '住宿费标准',
+          },
+          {
+              field: 'hotel_cost',
+              title: '住宿费金额',
+          },
+          {
+              field: 'food_days',
+              title: '伙食费天数',
+          },
+          {
+              field: 'food_standard',
+              title: '伙食费标准',
+          },
+          {
+              field: 'food_cost',
+              title: '伙食费金额：',
+          },
+          {
+              field: 'other_days',
+              title: '公杂费天数',
+          },
+          {
+              field: 'other_standard',
+              title: '公杂费标准',
+          },
+          {
+              field: 'other_cost',
+              title: '公杂费金额',
+          }
+        ]
+      });
+    };
+    oStudyTableInit.queryParams = function (params) {
+      var study_payment_list_id =$("#detail_form #study_payment_list_id").val();
+      var data = {'study_payment_list_id':study_payment_list_id};
+      return data;
+    };
+    return oStudyTableInit;
+  };
+
+  function refresh_table(table_id){
+    $('#detail_tb').bootstrapTable('refresh');
+    $('#detail_tb').bootstrapTable('selectPage', 1);
+  }
+
+  function pre_view(){
+    var study_payment_list_id =$("#detail_form #study_payment_list_id").val();
+    var url = "{:url('print_study_payment')}";
+    url = url+"?id="+study_payment_list_id;
+    window.open(url);
+  }
+  function submit_study_payment(){
+    var study_id =$("#info_form #study_id").val();
+    var url = "{:url('submit_study_payment')}";
+    var back_url = "{:url('manage')}";
+
+    $.post(url,{'study_id':study_id},function(data){
+      window.location.href = back_url;
+    });
+
+  }
+</script>
+{/block}

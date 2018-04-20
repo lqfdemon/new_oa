@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="UTF-8">
+    <link href="../../public/h_admin/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="../../public/h_admin/css/font-awesome.css?v=4.4.0" rel="stylesheet">
+    <link href="../../public/h_admin/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <link href="../../public/h_admin/css/animate.css" rel="stylesheet">
+    <link href="../../public/h_admin/css/style.css?v=4.1.0" rel="stylesheet">
+    <script src="../../public/h_admin/js/jquery.min.js?v=2.1.4"></script>
+    <script src="../../public/h_admin/js/bootstrap.min.js?v=3.3.6"></script>
+    <!-- awesomplete 自动补全 -->
+    <link rel="stylesheet" href="../../public/awesomplete/css/awesomplete.css" />
+    <!-- bootstrap Tables -->
+    <link href="../../public/h_admin/css/plugins/bootstrap-table/bootstrap-table.min.css" rel="stylesheet">
+    <script src="../../public/h_admin/js/plugins/bootstrap-table/bootstrap-table.min.js"></script>
+    <script src="../../public/h_admin/js/plugins/bootstrap-table/bootstrap-table-mobile.min.js"></script>
+    <script src="../../public/h_admin/js/plugins/bootstrap-table/locale/bootstrap-table-zh-CN.min.js"></script>
+    <script src="../../public/laydate/laydate.dev.js"></script>
+    <script src="../../public/static/js/common_table.js"></script>
+    <!-- awesomplete 自动补全 -->
+    <script src="../../public/awesomplete/js/awesomplete.js"></script>
+    <script src="../../public/static/js/common_auto_complete.js"></script>
+    <!-- bootbox  弹出窗 -->
+    <script src="../../public/bootbox/bootbox.min.js"></script>
+    <script src="../../public/static/js/common_alert.js"></script>
+    <!-- 公用函数 -->
+    <script src="../../public/static/js/common_function.js"></script>
+    {block name="private_file"}{/block}
+    <style type="text/css">
+         .form-control{
+            padding-bottom: 0px;
+            padding-top: 0px;    
+        }
+    </style>
+    {block name="private_css"}{/block}
+</head>
+{block name="content"}
+{/block}
+{notempty name="address_widget"}
+<script type="text/javascript">
+    function popup_address() {
+        $("#addressModal").modal('show');
+    }
+    function close_address() {
+        $("#addressModal").modal('hide');
+    }
+
+
+    //选中勾选的
+    function add_address(name) {
+        $("input:checked[name='addr_id']").each(function() {
+            $text = $(this).next().text().trim();
+            $val = $(this).val();
+            if ($("#" + name + ".selected li[data='" + $val + "']").length == 0) {
+                $li = $('<li><span></span><a class="fa fa-times"></a></li>');
+                $li.find('span').text($text);
+                $li.attr('data', $val);
+                $li.appendTo("#" + name + ".selected ul");
+                recount();
+            };
+        });
+        $("#addr_list input:checked").prop('checked', false);
+    }
+    //全选
+    function select_all() {
+        $("input[name='addr_id']").each(function() {
+            $text = $(this).parents("label").find("span").text();
+            $val = $(this).val();
+            if ($("#rc.selected li[data='" + $val + "']").length == 0) {
+                $li = $('<li><span></span><a class="fa fa-times"></a></li>');
+                $li.find('span').text($text);
+                $li.attr('data', $val);
+                $li.appendTo("#rc.selected ul");
+                recount();
+            };
+        });
+    }
+    //全选计数
+    function recount() {
+        $("#rc_count").text("(" + $("#rc.selected li").length + ")");
+        $("#cc_count").text("(" + $("#cc.selected li").length + ")");
+        $("#bcc_count").text("(" + $("#bcc.selected li").length + ")");
+    }
+    //点击X取消
+    $(document).on("click", ".selected a.fa-times", function() {
+        $(this).parent().remove();
+        recount();
+    });
+    //显示当前部门人员
+    function showdata(data) {
+                    $("#addr_list").html("");
+        if ( type = $("input[name='type']:checked").val() == "dept") {
+            var id = "dept_" + $("#dept a.active").attr("node");
+            var dept_name = $("#dept a.active span").text();
+            var name = dept_name + "&lt;dept@group&gt;";
+            var html_string = conv_address_item(name, id);
+            $("#addr_list").html(html_string);
+        }
+        $("#addr_list").html("");
+        for (s in data) {
+            var user_id = data[s].id;
+            var name = data[s].name;
+            var name = name;
+            var html_string = conv_address_item(name, user_id);
+            $("#addr_list").append(html_string);
+        }
+    }
+    // 双击添加到收件人 因后添加的数据 所以需要用live函数
+    $(document).on("dblclick", "#addr_list label", function() {
+        $text = $(this).text();
+        $val = $(this).find("input").val();
+        if ($("#rc.selected li[data='" + $val + "']").length == 0) {
+            $li = $('<li><span></span><a class="fa fa-times"></a></li>');
+            $li.find('span').text($text);
+            $li.attr('data', $val);
+            $li.appendTo("#rc.selected ul");
+            recount();
+        };
+    });
+    $(document).ready(function() {
+        $("#rb_dept").prop('checked', true);
+        // 选择用户默认选择的类型
+        $("#dept").removeClass("hidden");
+
+        $("input[name='type']").on('click', function() {
+            $("input[name='type']").each(function() {
+                $("#" + $(this).val()).addClass("hidden");
+            });
+            $("#" + $(this).val()).removeClass("hidden");
+        });
+
+        $(".tree_menu  a").click(function() {
+            $(".tree_menu a").removeClass("active");
+            var type = $("input[name='type']:checked").val();
+            $(this).addClass("active");
+            var url="{:url('index/user_manage/get_user_by_dept')}";
+            $.get(url,{'dept_id':$(this).attr("node")},function(data){
+                showdata(data);
+            });
+            return false;
+        });
+    });
+    function save() {
+        console.log('save');
+        $("#rc.selected li").each(function(i) {
+            emp_no = $(this).attr('data');
+            name = jQuery.trim($(this).text());
+            name = name.replace(/<.*>/, '');
+            html = conv_inputbox_item(name, emp_no);
+            console.log(html);
+            $("#actor_wrap .address_list").append(html);
+            close_address();
+        });
+    }
+
+    $(document).ready(function() {
+        $(document).on("click", ".inputbox .address_list a.del", function() {
+            $(this).parent().parent().remove();
+        });
+    });
+</script>
+{/notempty}
+{notempty name="upload_widget"}
+<script type="text/javascript">
+    /************文件上传**************/ 
+    var $list=$("#thelist");   //这几个初始化全局的百度文档上没说明，好蛋疼。  
+    var uploader = WebUploader.create({
+        // 选完文件后，是否自动上传。  
+        auto: true, 
+        // swf文件路径
+        swf: '../../public/static/webuploader/js/Uploader.swf',
+
+        // 文件接收服务端。
+        server: "{:url('upload')}",
+
+        // 选择文件的按钮。可选。
+        // 内部根据当前运行是创建，可能是input元素，也可能是flash.
+        pick: '#picker',
+
+        // 不压缩image, 默认如果是jpeg，文件上传前会压缩一把再上传！
+        resize: false
+    });
+    // 当有文件被添加进队列的时候
+    uploader.on( 'fileQueued', function( file ) {
+        $list.append( '<div id="' + file.id + '" class="item">' +
+            '<h4 class="info">' + file.name + '</h4>' +
+            '<p class="state">等待上传...</p>' +
+        '</div>' );
+    });
+    // 文件上传过程中创建进度条实时显示。
+    uploader.on( 'uploadProgress', function( file, percentage ) {
+        var $li = $( '#'+file.id ),
+            $percent = $li.find('.progress .progress-bar');
+        // 避免重复创建
+        if ( !$percent.length ) {
+            $percent = $('<div class="progress progress-striped active">' +
+              '<div class="progress-bar" role="progressbar" style="width: 0%">' +
+              '</div>' +
+            '</div>').appendTo( $li ).find('.progress-bar');
+        }
+
+        $li.find('p.state').text('上传中');
+
+        $percent.css( 'width', percentage * 100 + '%' );
+    });
+    uploader.on( 'uploadSuccess', function( file ,response) {
+        $( '#'+file.id ).find('p.state').text('已上传');
+        var add_file = $("#add_file").val();
+        add_file = add_file+response+';';
+        $("#add_file").val(add_file);
+    });
+
+    uploader.on( 'uploadError', function( file ) {
+        $( '#'+file.id ).find('p.state').text('上传出错');
+    });
+
+    uploader.on( 'uploadComplete', function( file ) {
+        $( '#'+file.id ).find('.progress').fadeOut();
+    });    
+</script>
+{/notempty}
+</html>

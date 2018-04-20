@@ -1,0 +1,563 @@
+{extend name="common_page" /}
+{block name="private_file"}
+<!-- awesomplete 自动补全 -->
+<link rel="stylesheet" href="../../public/static/awesomplete/css/awesomplete.css" />
+<script src="../../public/static/awesomplete/js/awesomplete.js"></script>
+{/block}
+{block name="content"}
+<body class="gray-bg" onload="page_init();">
+    <div class="wrapper wrapper-content  animated fadeInRight">
+        <div class="ibox">
+            <div class="ibox-content">
+                <form class="form-horizontal m-t" id="search_condition_form">
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">发送者：</label>
+                         <div class="col-sm-2">
+                            <input type="text" id="user_name"  name="user_name" class="form-control">
+                        </div>               
+                        <label class="col-sm-2 control-label">公文标题：</label>
+                         <div class="col-sm-2">
+                            <input type="text" id="title"  name="title" class="form-control">
+                        </div>
+                        <div class="col-sm-3">
+                            <button type="button"  class="btn btn-primary" onclick="refresh_all_table();"><i class="fa fa-search"></i> 搜索</button>
+                        </div>
+                    </div>
+                </form>
+                <div style="padding-top: 30px">
+                    <ul class="nav nav-tabs">
+                        <li class="active">
+                            <a data-toggle="tab" href="#tab-1"><i class="fa fa-folder"></i> 未签收&nbsp;<span class="label label-warning pull-right" id="not_finished_task_num"></span></a>
+                        </li>
+                        <li class=""><a data-toggle="tab" href="#tab-2"><i class="fa fa-folder-open"></i> 已签收&nbsp;<span class="label label-deault pull-right" id="finished_task_num"></span></a>
+                        </li>
+                        <li class=""><a data-toggle="tab" href="#tab-3"><i class="fa fa-envelope"></i> 已发送&nbsp;<span class="label label-deault pull-right" id="send_task_num"></span></a>
+                        </li>
+                    </ul> 
+                    <div class="tab-content">
+                        <div id="tab-1" class="tab-pane active" style="padding-top: 10px">
+                            <div class="row" style="padding: 20px;">
+                                <button type="button"  class="btn btn-primary pull-left" onclick="receice_all()"><i class="fa fa-check"></i> 批量签收</button>
+                            </div>
+                            <table id="notFinishedTable"></table>
+                        </div> 
+                        <div id="tab-2" class="tab-pane" style="padding-top: 30px">
+                            <table id="finishedTable"></table>
+                        </div>
+                        <div id="tab-3" class="tab-pane" style="padding-top: 30px">
+                            <table id="sendTable"></table>
+                        </div>
+                    </div>
+                </div>               
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="readModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        &times;
+                    </button>
+                    <h4 class="modal-title" id="addNursingModalTitle">
+                        公文详情
+                    </h4>
+                </div>
+                <div class="modal-body">
+                    <form class="form-horizontal m-t" >
+                        <input type="hidden" name="task_id" id="task_id">
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label" >标题：</label>
+                            <div class="col-sm-10">
+                                <p class="form-control-static" id="title"></p>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label" >发送者：</label>
+                            <div class="col-sm-10">
+                                <p class="form-control-static" id="sender"></p>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label" >发送时间：</label>
+                            <div class="col-sm-10">
+                                <p class="form-control-static" id="create_time"></p>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label" >接收者：</label>
+                            <div class="col-sm-10">
+                                <p class="form-control-static" id="executor"></p>
+                            </div>
+                        </div>
+                    </form>
+                    <div class="mail-box">
+                        <div class="mail-body" id="content">
+                        </div>
+                        <div class="mail-attachment">
+                            <p>
+                                <h4 id="attachment_num"></h4>
+                            </p>
+                            <div >
+                                <div class="row" id="attachment_content">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" id="modalFooter">
+                </div>
+            </div>
+        </div>
+    </div>  
+    <div class="modal fade" id="receiveListModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        &times;
+                    </button>
+                    <h4 class="modal-title" id="addNursingModalTitle">
+                        签收情况
+                    </h4>
+                    <div class="modal-body">
+                        <div class="row"> 
+                            <div class="ibox float-e-margins">
+                                <div class="ibox-title">
+                                    <h5>拒绝签收</h5>
+                                </div>
+                                <div class="ibox-content">
+                                    <p id="reject_list"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row"> 
+                            <div class="ibox float-e-margins">
+                                <div class="ibox-title">
+                                    <h5>未签收</h5>
+                                </div>
+                                <div class="ibox-content">
+                                    <p id="not_finished_list"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row"> 
+                            <div class="ibox float-e-margins">
+                                <div class="ibox-title">
+                                    <h5>已签收</h5>
+                                </div>
+                                <div class="ibox-content">
+                                    <p id="finished_list"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script type="text/javascript">
+    function page_init(){
+        init_not_finished_table();
+        set_not_finished_task_num();
+        set_finished_task_num();
+        set_send_task_num();
+        init_finished_table();
+        init_send_table();
+        awesomplete_user_name("user_name","{:url('get_user_name_list')}");
+    }
+    function init_not_finished_table(){
+        var url="{:url('get_task_list')}";
+        //未签收
+        var column_list=
+        [
+            {
+                checkbox: true
+            },
+            {
+                field: 'id',
+                title: '编号',
+            },
+            {
+                field: 'user_name',
+                title: '发送者：',
+            },
+            {
+                field: 'name',
+                title: '标题',
+                formatter: notFinishedTitleFormatter
+            },
+            {
+                field: 'file_flag',
+                title: '附件',
+                formatter: fileFlagFormatter
+            },
+            {
+                field: 'create_time',
+                title: '发送时间',
+            },
+        ];
+        searchParams=function (params) {
+            var user_name =$("#search_condition_form #user_name").val();
+            var title =$("#search_condition_form #title").val();
+            var data = {'type':'not_finished','title':title,'user_name':user_name};
+            return data;
+        };
+        var notFinishedTable = new TableInit('notFinishedTable',url,'id',column_list,OnClickFunction,searchParams,false);
+        notFinishedTable.Init();
+    }
+    function notFinishedTitleFormatter(value, row, index) {
+        var table = "notFinishedTable";
+        return [
+            '<a  title="编辑" onclick="readTask('+table+','+row['id']+');">',
+            row['name'],
+            '</a>  ',
+        ].join('');
+    }
+    function fileFlagFormatter(value, row, index) {
+        if(row.file_flag){
+            return [
+                '<i class="fa fa-paperclip"></i>',
+            ].join('');
+        }else{
+            return '';
+        }
+    }
+    function OnClickFunction(row){
+        
+    }
+    function readTask(table,id){
+
+        var row = $(table).bootstrapTable('getRowByUniqueId', id);
+        var table_id =$(table).attr('id');
+        var list_strs=row.executor.split(";");
+        var executor="";
+        for (var i = 0; i < list_strs.length; i++) {
+            var item_strs = list_strs[i].split("|");
+            executor = executor+item_strs[0]+';';
+        }
+        $("#readModal #task_id").val(row.id);
+        $("#readModal #title").text(row.name);
+        $("#readModal #sender").text(row.user_name);
+        $("#readModal #create_time").text(row.create_time);
+        $("#readModal #executor").text(executor);
+        $("#readModal #content").html(row.content);
+        console.log("文件列表");
+        if(row.file_list.length>0){
+            var file_list = row.file_list;
+            $("#readModal #attachment_num").html("<i class='fa fa-paperclip'></i>"+row.file_list.length+"个附件 - ");
+            var html="";
+            console.log(file_list);
+            for (var i = 0; i < file_list.length; i++) {
+                var file_type_str ="";
+                file_type_str = file_list[i]['file_name'].split('.');
+                var file_type = file_type_str[1];
+                var file_icon =get_file_icon(file_type);
+                console.log(file_type);
+                console.log(file_icon);
+                html +=[
+                    '<div class="file col-sm-4">',
+                        '<a href="'+file_list[i]['file_url']+'">',
+                            '<span class="corner"></span>',
+                            '<div class="icon">',
+                                '<i class="'+file_icon+'"></i>',
+                            '</div>',
+                        '<div class="file-name">'+file_list[i]['file_name'],
+                            '</div>',
+                        '</a>',
+                    '</div>'
+                ].join('');
+            }
+            $("#readModal #attachment_content").html(html);
+        }else{
+            $("#readModal #attachment_num").empty();
+            $("#readModal #attachment_content").empty();
+        }
+        if(table_id == 'notFinishedTable'){
+            var footer_html =[
+                    '<form class="form-horizontal m-t">',
+                        '<div class="form-group">',
+                            '<div class="col-sm-8">',
+                            '</div>',
+                            '<div class="col-sm-4">',
+                                '<button type="button"  class="btn btn-primary pull-left" onclick="receice()"><i class="fa fa-check"></i> 签收</button>',
+                            '</div>',
+                        '</div>',
+                        '<div class="form-group">',
+                            '<label class="col-sm-2 control-label">拒签理由：</label>',
+                            '<div class="col-sm-6">',
+                                '<input type="text" id="reject_reson"  name="reject_reson" class="form-control">',
+                            '</div>',
+                            '<div class="col-sm-4">',
+                                '<button type="button"  class="btn btn-danger pull-left" onclick="reject()"><i class="fa fa-close"></i> 拒签</button>',
+                            '</div>',
+                        '</div>',
+                    ' </form>'
+                ].join('');
+            $("#modalFooter").html(footer_html);
+        }
+        $('#readModal').modal('show');
+    }
+// EXCEL:fa-file-excel-o
+             // WORD:fa-file-word-o
+             // PDF:fa-file-pdf-o
+             // 图片:fa-file-image-o
+             // PPT:fa-file-powerpoint-o
+             // 视频:fa-file-video-o
+             // 压缩包:fa-file-zip-o
+    function get_file_icon(file_type){
+        var file_icon = "fa fa-file";
+        switch(file_type){
+            case 'doc':
+            case 'docx':
+                file_icon = "fa fa-file-word-o";
+                break;
+            case 'xls':
+            case 'xlsx':
+                file_icon = "fa fa-file-excel-o";
+                break;
+            case 'ppt':
+            case 'pptx':
+                file_icon = "fa fa-file-powerpoint-o";
+                break;
+            case 'jpg':
+            case 'jpeg':
+            case 'bmp':
+            case 'png':
+                file_icon = "fa fa-file-image-o";
+                break;
+            case 'avi':
+            case 'mp4':
+            case 'mov':
+            case 'mpg':
+                file_icon = "fa fa-file-video-o";
+                break;
+            case 'rar':
+            case 'zip':
+                file_icon = "fa fa-file-zip-o";
+                break;
+            case 'pdf':
+                file_icon = "fa fa-file-pdf-o";
+                break;
+            default:
+                break;
+        }
+        return file_icon;
+    }
+    function receice(){
+        var task_id=$("#readModal #task_id").val();
+        var send_data={'task_id':task_id};
+        console.log(send_data);
+        $.get('{:url("receice")}',send_data,function(data){
+            $('#readModal').modal('hide');
+            ui_alert(data['msg']);
+            refresh_all_table();
+        });
+    }
+    function receice_all(){
+        var selections=[];
+        var id_list = getIdSelections('notFinishedTable');
+        console.log(id_list);
+        $.post("{:url('receive_all')}",{'id_list':id_list},function(data){
+            ui_alert(data['msg']);
+            refresh_all_table();
+        });
+    }
+    function getIdSelections(table_id) {
+        return $.map($('#'+table_id).bootstrapTable('getSelections'), function (row) {
+            return row.id;
+        });
+    }
+    function reject(){
+        var task_id=$("#readModal #task_id").val();
+        var reject_reson=$("#reject_reson").val();
+        var send_data={'task_id':task_id,'reject_reson':reject_reson};
+        console.log(send_data);
+        $.get('{:url("reject")}',send_data,function(data){
+            $('#readModal').modal('hide');
+            ui_alert(data['msg']);
+            refresh_all_table();
+        });
+    }
+    function set_not_finished_task_num(){
+        console.log('set_not_finished_task_num');
+        $.get('{:url("get_not_finished_num")}',{},function(data){
+            console.log(data);
+            if(data == 0){
+                $('#not_finished_task_num').text('');
+            }else{
+                $('#not_finished_task_num').text(data);
+            }
+        });
+    }
+    function set_finished_task_num(){
+        console.log('set_finished_task_num');
+        $.get('{:url("get_finished_num")}',{},function(data){
+            console.log(data);
+            if(data == 0){
+                $('#finished_task_num').text('');
+            }else{
+                $('#finished_task_num').text(data);
+            }
+        });
+    }
+    function set_send_task_num(){
+        $.get('{:url("get_send_num")}',{},function(data){
+            console.log(data);
+            if(data == 0){
+                $('#send_task_num').text('');
+            }else{
+                $('#send_task_num').text(data);
+            }
+        });
+    }
+    function refresh_all_table(table_id){
+        $('#notFinishedTable').bootstrapTable('refresh');
+        $('#notFinishedTable').bootstrapTable('selectPage', 1);
+        $('#finishedTable').bootstrapTable('refresh');
+        $('#finishedTable').bootstrapTable('selectPage', 1);
+        set_not_finished_task_num();
+        set_finished_task_num();
+        set_send_task_num();
+    }
+
+    function init_finished_table(){
+        var url="{:url('get_task_list')}";
+        //已签收
+        var column_list=
+        [
+            {
+                field: 'id',
+                title: '编号',
+            },
+            {
+                field: 'user_name',
+                title: '发送者：',
+            },
+            {
+                field: 'name',
+                title: '标题',
+                formatter: FinishedTitleFormatter
+            },
+            {
+                field: 'file_flag',
+                title: '附件',
+                formatter: fileFlagFormatter
+            },
+            {
+                field: 'create_time',
+                title: '发送时间',
+            },
+        ];
+        searchParams=function (params) {
+            var user_name =$("#search_condition_form #user_name").val();
+            var title =$("#search_condition_form #title").val();
+            var data = {'type':'finished','title':title,'user_name':user_name};
+            return data;
+        };
+        var finishedTable = new TableInit('finishedTable',url,'id',column_list,OnClickFunction,searchParams,false);
+        finishedTable.Init();
+    }
+    function FinishedTitleFormatter(value, row, index) {
+        var table = "finishedTable";
+        return [
+            '<a  title="编辑" onclick="readTask('+table+','+row['id']+');">',
+            row['name'],
+            '</a>  ',
+        ].join('');
+    }
+
+    function init_send_table(){
+        var url="{:url('get_send_task_list')}";
+        //已签收
+        var column_list=
+        [
+            {
+                field: 'id',
+                title: '编号',
+            },
+            {
+                field: 'user_name',
+                title: '发送者：',
+            },
+            {
+                field: 'name',
+                title: '标题',
+                formatter: sendTitleFormatter
+            },
+            {
+                field: 'file_flag',
+                title: '附件',
+                formatter: fileFlagFormatter
+            },
+            {
+                field: 'operation',
+                title: '操作',
+                formatter: sendOperationFormatter
+            },
+            {
+                field: 'create_time',
+                title: '发送时间',
+            },
+        ];
+        searchParams=function (params) {
+            var title =$("#search_condition_form #title").val();
+            var data = {'title':title};
+            return data;
+        };
+        var finishedTable = new TableInit('sendTable',url,'id',column_list,OnClickFunction,searchParams,false);
+        finishedTable.Init();
+    }
+    function sendTitleFormatter(value, row, index) {
+        var table = "sendTable";
+        return [
+            '<a  title="编辑" onclick="readTask('+table+','+row['id']+');">',
+            row['name'],
+            '</a>  ',
+        ].join('');
+    }
+    function sendOperationFormatter(value, row, index) {
+        return [
+            '<a  title="查看签收情况" onclick="check_receive_list('+row['id']+');">',
+            '查看签收情况',
+            '</a>  ',
+        ].join('');
+    }
+    function check_receive_list(task_id){
+        $.get("{:url('get_receive_status')}",{'task_id':task_id},function(data){
+            var reject_list_str="";
+            var not_finished_list_str="";
+            var finished_list_str="";
+            for (var i = 0; i < data.length; i++) {
+                if(data[i].status == 22){
+                    reject_list_str=reject_list_str+data[i].executor_name+"(拒签原因:"+data[i].reject_reson+");"
+                }else if(data[i].status == 0){
+                    not_finished_list_str=not_finished_list_str+data[i].executor_name+";"
+                }else if(data[i].status == 20){
+                    finished_list_str=finished_list_str+data[i].executor_name+";"
+                }
+            }
+            $("#receiveListModal #reject_list").text(reject_list_str);
+            $("#receiveListModal #not_finished_list").text(not_finished_list_str);
+            $("#receiveListModal #finished_list").text(finished_list_str);
+            $("#receiveListModal").modal('show');
+        });
+    }
+
+    function awesomplete_user_name(name_element,get_name_url){
+        $.get(get_name_url,{},function(data){
+            var name=[];
+            console.log(data);
+            for(var i=0;i<data.length;i++){
+                name[i] = data[i]['name'];
+            }
+            var input = document.getElementById(name_element);
+            new Awesomplete(input, {
+                minChars: 1,
+                list: name,
+            });
+        });
+    }
+</script>
+{/block}

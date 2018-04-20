@@ -1,0 +1,120 @@
+{extend name="common_page" /}
+{block name="content"}
+<body class="gray-bg" onload="page_init();">
+    <div class="wrapper wrapper-content  animated fadeInRight">
+        <div class="ibox">
+        	<div class="ibox-title">
+        		<h5>申请会议</h5>
+        	</div>
+            <div class="ibox-content">
+                <form class="form-horizontal m-t" id="meeting_form">
+                	<input type="hidden" id="id" name="id" value="{$meeting_id}">
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">会议名称：</label>
+                        <div class="col-sm-10">
+                            <input type="text" id="name"  name="name" class="form-control">
+                        </div>  
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">会议地点：</label>
+                        <div class="col-sm-2">
+                            <input type="text" id="address"  name="address" class="form-control">
+                        </div> 
+                        <label class="col-sm-2 control-label">预计开始时间：</label>
+                        <div class="col-sm-2">
+                            <input type="text" id="start_time"  name="start_time" class="form-control">
+                        </div>
+                        <label class="col-sm-2 control-label">预计结束时间：</label>
+                        <div class="col-sm-2">
+                            <input type="text" id="end_time"  name="end_time" class="form-control">
+                        </div> 
+                    </div>
+                    <div class="form-group">             
+                        <label class="col-sm-2 control-label">参会领导：</label>
+                        <div class="col-sm-6">
+                            <input type="text" id="leader"  name="leader" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">会议主持：</label>
+                        <div class="col-sm-6">
+                            <input type="text" id="manager"  name="manager" class="form-control">
+                        </div>
+                	</div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">主要议题：</label>
+                        <div class="col-sm-10">
+                            <textarea id="main_assue"  name="main_assue" class="form-control" style="height: 80px"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">参会人员名单：</label>
+                        <div class="col-sm-10">
+                        	<textarea id="viewer"  name="viewer" class="form-control" style="height: 80px"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">是否需要座牌：</label>
+                        <div class="col-sm-1">
+                            <select id="is_neet_name_card"  name="is_neet_name_card" class="form-control" onchange="name_card_change();">
+                                <option value="否">否</option>
+                                <option value="是">是</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group" id="name_card_group">
+                        <label class="col-sm-2 control-label">座牌名单：</label>
+                        <div class="col-sm-10">
+                            <textarea id="name_card"  name="name_card" class="form-control" style="height: 80px"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-4">
+                        </div>
+                        <div class="col-sm-2">
+                            <button type="button" id="save_btn" class="btn btn-primary center-block" onclick="save_add();"><i class="fa fa-save"></i> 保存</button>
+                        </div>
+                        <div class="col-sm-2">
+                            <button type="button" id="save_btn" class="btn btn-default center-block" onclick="back();"><i class="fa fa-back"></i> 返回</button>
+                        </div>
+                        <div class="col-sm-4">
+                        </div>
+                    </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+<script type="text/javascript">
+	function page_init(){
+		laydate({'elem':'#start_time','istime':true,format: 'YYYY/MM/DD hh:mm:ss'});
+		laydate({'elem':'#end_time','istime':true,format: 'YYYY/MM/DD hh:mm:ss'});
+        $("#name_card_group").hide();
+	}
+	function save_add(){
+		var send_data=$("#meeting_form").serializeArray();
+		console.log(send_data);
+		$.post("{:url('save')}",send_data,function(data){
+			ui_alert(data['msg']);
+			if(data['code']){
+				$("#save_btn").hide();
+			}else{
+
+			}
+		});
+	}
+    function back(){
+        var url= "{:url('my_meeting')}";
+        window.location.href=url;
+    }
+    function name_card_change(){
+        var is_neet_name_card = $("#is_neet_name_card").val();
+        if(is_neet_name_card == '是'){
+            $("#name_card_group").show();
+        }else{
+            $("#name_card_group").hide();
+        }
+    }
+</script>
+</body>
+{/block}

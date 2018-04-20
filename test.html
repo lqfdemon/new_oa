@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="UTF-8">
+    <link href="public/h_admin/css/bootstrap.min.css?v=3.3.6" rel="stylesheet">
+    <link href="public/h_admin/css/font-awesome.css?v=4.4.0" rel="stylesheet">
+    <link href="public/h_admin/css/plugins/iCheck/custom.css" rel="stylesheet">
+    <link href="public/h_admin/css/animate.css" rel="stylesheet">
+    <link href="public/h_admin/css/style.css?v=4.1.0" rel="stylesheet">
+    <script src="public/h_admin/js/jquery.min.js?v=2.1.4"></script>
+    <script src="public/h_admin/js/bootstrap.min.js?v=3.3.6"></script>
+    <!-- bootstrap Tables -->
+    <link href="public/h_admin/css/plugins/bootstrap-table/bootstrap-table.min.css" rel="stylesheet">
+    <script src="public/h_admin/js/plugins/bootstrap-table/bootstrap-table.min.js"></script>
+    <script src="public/h_admin/js/plugins/bootstrap-table/bootstrap-table-mobile.min.js"></script>
+    <script src="public/h_admin/js/plugins/bootstrap-table/locale/bootstrap-table-zh-CN.min.js"></script>
+    <!-- jsTree plugin javascript -->
+    <script src="../../public/h_admin/js/plugins/jsTree/jstree.min.js"></script>
+    <link href="../../public/h_admin/css/plugins/jsTree/style.min.css" rel="stylesheet">
+    
+    <style type="text/css">
+         .form-control{
+            padding-bottom: 0px;
+            padding-top: 0px;    
+        }
+    </style>
+</head>
+<body onload="page_init();">
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row"> 
+            <div class="col-md-6">
+                <div class="row">
+                <form class="form-horizontal m-t" id="search_condition_form">
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">咨询人：</label>
+                         <div class="col-sm-2">
+                            <input type="text" id="consulter_name"  name="consulter_name" class="form-control">
+                        </div>
+                        <label class="col-sm-2 control-label">咨询意向：</label>
+                         <div class="col-sm-2">
+                            <select id="consult_intention" name="consult_intention" class="form-control">
+                                <option value="了解情况">了解情况</option>
+                                <option value="预定床位">预定床位</option>
+                                <option value="准备入住">准备入住</option>
+                            </select>
+                        </div>
+                        <label class="col-sm-2 control-label">老人：</label>
+                         <div class="col-sm-2">
+                            <input type="text" id="name"  name="name" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">社保类型：</label>
+                        <div class="col-sm-2">
+                            <select id="social_insurance_type" name="social_insurance_type" class="form-control">
+                                <option value="城镇职工">城镇职工</option>
+                                <option value="城乡居民">城乡居民</option>
+                            </select>
+                        </div>
+                        <label class="col-sm-2 control-label">自理情况：</label>
+                         <div class="col-sm-2">
+                            <select id="self_care" name="self_care" class="form-control">
+                                <option value="痴呆">痴呆</option>
+                                <option value="介助">介助</option>
+                                <option value="介护">介护</option>
+                                <option value="自理">自理</option>
+                            </select>
+                        </div>
+                        <label class="col-sm-2 control-label"></label>
+                        <div class="col-sm-2">
+                            <button type="button"  class="btn btn-primary" onclick="add_building_sure();"><i class="fa fa-search"></i> 查询</button>
+                        </div>
+                    </div>
+                </form>
+                </div>              
+            </div>
+            <div class="col-md-6">
+                <button type="button"  class="btn btn-primary center-block" onclick="add_consult();"><i class="fa fa-plus"></i> 新增</button>
+            </div>
+        </div>
+        <div class="row"> 
+            <div class="ibox float-e-margins">
+                <div class="ibox-content">
+                    <table id="search_res_table"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="addConsultModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        &times;
+                    </button>
+                    <h4 class="modal-title" id="myModalLabel">
+                        添加咨询信息
+                    </h4>
+                </div>
+                <div class="modal-body">
+                    <form class="form-horizontal m-t" id="add_consult_info_form">
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">编号：</label>
+                            <div class="col-sm-4">
+                                <input type="text" id="consult_info_id" readonly="" name="consult_info_id" class="form-control">
+                            </div>
+                            <label class="col-sm-2 control-label">名称：</label>
+                             <div class="col-sm-4">
+                                <input type="text" id="state" readonly="" name="state" class="form-control" value="咨询">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">咨询人姓名：</label>
+                             <div class="col-sm-4">
+                                <input type="text" id="consulter_name"  name="consulter_name" class="form-control">
+                            </div>
+                            <label class="col-sm-2 control-label">咨询人电话：</label>
+                             <div class="col-sm-4">
+                                <input type="text" id="consulter_tel"  name="consulter_tel" class="form-control">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">与老人关系：</label>
+                             <div class="col-sm-4">
+                                <select id="relationship" name="relationship" class="form-control">
+                                    <option value="本人">本人</option>
+                                    <option value="子女">子女</option>
+                                    <option value="配偶">配偶</option>
+                                    <option value="父母">父母</option>
+                                    <option value="兄弟姐妹">兄弟姐妹</option>
+                                    <option value="其他亲属">其他亲属</option>
+                                    <option value="其他">其他</option>
+                                </select>
+                            </div>
+                            <label class="col-sm-2 control-label">老人姓名：</label>
+                             <div class="col-sm-4">
+                                <input type="text" id="name"  name="name" class="form-control">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">老人性别：</label>
+                             <div class="col-sm-4">
+                                <select id="sex" name="sex" class="form-control">
+                                    <option value="男">男</option>
+                                    <option value="女">女</option>
+                                </select>
+                            </div>
+                            <label class="col-sm-2 control-label">出生日期：</label>
+                             <div class="col-sm-4">
+                                <input type="date" id="birthday"  name="birthday" class="form-control">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">社保类型：</label>
+                            <div class="col-sm-4">
+                                <select id="social_insurance_type" name="social_insurance_type" class="form-control">
+                                    <option value="城镇职工">城镇职工</option>
+                                    <option value="城乡居民">城乡居民</option>
+                                </select>
+                            </div>
+                            <label class="col-sm-2 control-label">自理情况：</label>
+                             <div class="col-sm-4">
+                                <select id="self_care" name="self_care" class="form-control">
+                                    <option value="痴呆">痴呆</option>
+                                    <option value="介助">介助</option>
+                                    <option value="介护">介护</option>
+                                    <option value="自理">自理</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">咨询方式：</label>
+                             <div class="col-sm-4">
+                                <select id="consult_way" name="consult_way" class="form-control">
+                                    <option value="电话">电话</option>
+                                    <option value="来人">来人</option>
+                                </select>
+                            </div>
+                            <label class="col-sm-2 control-label">咨询意向：</label>
+                             <div class="col-sm-4">
+                                <select id="consult_intention" name="consult_intention" class="form-control">
+                                    <option value="了解情况">了解情况</option>
+                                    <option value="预定床位">预定床位</option>
+                                    <option value="准备入住">准备入住</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">家庭住址：</label>
+                             <div class="col-sm-10">
+                                <input type="text" id="address"  name="address" class="form-control">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">备注：</label>
+                             <div class="col-sm-10">
+                                <input type="text" id="remark"  name="remark" class="form-control">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <button type="button"  class="btn btn-primary pull-right" onclick="submit_consult_info();"><i class="fa fa-save"></i> 保存</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>  
+</body>
+<script type="text/javascript">
+    function page_init(){
+        init_search_res_table();  
+    }   
+    function add_consult(){
+        $.get("{:url('get_next_consult_info_id')}",{},function(data){
+            console.log("new console_info_id = "+data);
+            $("#add_consult_info_form #consult_info_id").val(data);
+        });
+        $("#addConsultModal").modal('show');
+    }
+    function submit_consult_info(){
+        var send_data = $("#add_consult_info_form").serializeArray();
+        console.log(send_data);
+        $.post("{:url('save_consult_info')}",send_data,function(data){
+            console.log(data);
+            if(data['code']){
+                $("#addConsultModal").modal('hide');
+                location.reload();
+            }else{
+                
+            }
+        });     
+    }
+
+    function init_search_res_table(){
+        var detailTable = new DetailTableInit();
+        detailTable.Init();
+    }
+
+    var DetailTableInit = function () {
+        var detailTableInit = new Object();
+        //初始化Table
+        detailTableInit.Init = function () {
+            $('#search_res_table').bootstrapTable({
+                url: "{:url('search_consult_info')}",         //请求后台的URL（*）
+                method: 'get',                      //请求方式（*）
+                striped: false,                      //是否显示行间隔色
+                pageSize: 20,                       //每页的记录行数（*）
+                pageList: [20,30],        //可供选择的每页的行数（*）       //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+                pagination: true,                   //是否显示分页（*）
+                queryParams: detailTableInit.queryParams,//传递参数（*）
+                columns: [{
+                    field: 'consult_info_id',
+                    title: '编号',
+                },{
+                    field: 'state',
+                    title: '状态',
+                },{
+                    field: 'consulter_name',
+                    title: '咨询人',
+                },{
+                    field: 'relationship',
+                    title: '关系',
+                },{
+                    field: 'name',
+                    title: '老人',
+                },{
+                    field: 'sex',
+                    title: '性别',
+                },{
+                    field: 'self_care',
+                    title: '自理情况',
+                },{
+                    field: 'consult_way',
+                    title: '咨询方式',
+                },{
+                    field: 'consult_intention',
+                    title: '咨询意向',
+                },{
+                    field: 'consulter_name',
+                    title: '联系电话',
+                },{
+                    field: 'receptionist',
+                    title: '接待人',
+                }]
+            });
+        };
+        detailTableInit.queryParams = function (params) {
+            var data = $("#search_condition_form").serializeArray();
+            return data;
+        };
+        return detailTableInit;
+    };
+
+    function refresh_search_res_table(){
+        $('#search_res_table').bootstrapTable('refresh');
+        $('#search_res_table').bootstrapTable('selectPage', 1);
+    }
+</script>
+</html>

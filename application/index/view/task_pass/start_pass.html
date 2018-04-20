@@ -1,0 +1,224 @@
+{extend name="common_page" /}
+{block name="private_file"}
+	<link href="../../public/ins/css/xiaowei.css" rel="stylesheet">
+	<script src="../../public/static/js/address.js"></script>
+	<!-- webuploader -->
+	<link rel="stylesheet" type="text/css" href="../../public/static/webuploader/css/webuploader.css" />
+    <script type="text/javascript" src="../../public/static/webuploader/js/webuploader.js"></script>
+{/block}
+{block name="content"}
+<body class="gray-bg" onload="page_init();">
+	<div class="wrapper wrapper-content  animated fadeInRight">
+		<div class="ibox">
+			<div class="ibox-title">
+				<h5>发起公文处理</h5>
+            </div>
+            <div class="ibox-content">
+				<form method='post' id="form_data" name="form_data" class="well form-horizontal">
+					<input type="hidden" id="executor" name="executor" value="">
+					<input type="hidden" id="add_file" name="add_file" value="">
+					<div class="form-group">
+						<label class="col-sm-2 control-label" for="name">来文标题：</label>
+						<div class="col-sm-10">
+							<input class="form-control" type="text" id="form_title" name="form_title"  check="require" >
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-sm-2 control-label" for="name">来文单位：</label>
+						<div class="col-sm-4">
+							<input class="form-control" type="text" id="form_unit" name="form_unit"  check="require" >
+						</div>
+						<label class="col-sm-2 control-label" for="name">来文时间：</label>
+						<div class="col-sm-4">
+							<input class="form-control" type="text" id="form_time" name="form_time"  check="require" >
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-sm-2 control-label" for="name">来文文号：</label>
+						<div class="col-sm-4">
+							<input class="form-control" type="text" id="form_id" name="form_id"  check="require" >
+						</div>
+						<label class="col-sm-2 control-label" for="name">来文等级：</label>
+						<div class="col-sm-4">
+							<select class="form-control" id="form_leavel" name="form_leavel">
+								<option value="局级">局级</option>
+								<option value="区级">区级</option>
+								<option value="市级">市级</option>
+								<option value="省级">省级</option>
+								<option value="国家级">国家级</option>
+							</select>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-sm-2 control-label" for="name">发送给：</label>
+						<div class="col-sm-10">
+							<div id="actor_wrap" class="inputbox">
+								<a class="pull-right btn btn-link text-center" onclick="popup_address();"><i class="fa fa-user"></i> </a>
+								<div class="wrap" >
+									<span class="address_list"></span>
+									<span class="text" >
+										<input class="letter" type="text"  >
+									</span>
+								</div>
+								<div class="search dropdown ">
+									<ul class="dropdown-menu"></ul>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-sm-2 control-label" for="content">拟办意见：</label>
+						<div class="col-sm-10">
+							<textarea class="editor" id="suggestion" name="suggestion" style="width:100%;height:300px;" check="require" msg="请输入内容"></textarea>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-sm-2 control-label" for="name">附件：</label>
+						<div class="col-sm-10">
+							<div id="uploader" class="wu-example">
+							    <!--用来存放文件信息-->
+							    <div id="thelist" class="uploader-list"></div>
+							    <div class="btns">
+							        <div id="picker">添加附件</div>
+							    </div>
+							</div>
+						</div>
+					</div>
+					<div class="form-group">
+						<button type="button" class="btn btn-primary center-block" onclick="send_pass();" id="send">
+							<i class="fa fa-save"></i>
+							&nbsp;&nbsp;发送
+						</button>
+					</div>
+				</form>
+            </div>
+
+        </div>
+	</div>
+    <div class="modal fade" id="addressModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" style="width: 650px;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        &times;
+                    </button>
+                    <h4 class="modal-title" id="addNursingModalTitle">
+                        地址簿
+                    </h4>
+                    <div class="modal-body">
+						<div class="popup-container">							
+							<div class="popup-fixed">
+								<div class="popup-header clearfix">
+									<div class="pull-left">
+										<label>
+											<input class="ace"  type="radio" id="rb_dept" name="type" value="dept" >
+											<span class="lbl">部门</span> </label>
+										
+									</div>
+								</div>
+								<div class="popup-body clearfix">
+									<div class="col-23 pull-left">
+										<b class="popup-label">地址簿</b>
+										<div class="popup_tree_menu" >
+											<div id="dept"  style="height:170px;">
+												<ul class="tree_menu">
+													<li>
+													<a class="" node="1" ><i class="fa fa-angle-right level1"></i><span>区卫计局</span></a>
+													<ul class="tree_menu">
+													<li>
+													<a class="" node="67" ><i class="fa fa-angle-right level2"></i><span>局领导</span></a>
+													</li>
+													<li>
+													<a class="" node="5" ><i class="fa fa-angle-right level2"></i><span>局机关科室</span></a>
+													</li>
+													<li>
+													<a class="" node="68" ><i class="fa fa-angle-right level2"></i><span>卫生监督执法大队</span></a>
+													</li>
+													<li>
+													<a class="" node="6" ><i class="fa fa-angle-right level2"></i><span>区级医疗卫生单位</span></a>
+													</li>
+													<li>
+													<a class="" node="7" ><i class="fa fa-angle-right level2"></i><span>社区卫生服务中心</span></a>
+													</li>
+													<li>
+													<a class="" node="8" ><i class="fa fa-angle-right level2"></i><span>公立卫生院</span></a>
+													</li>
+													<li>
+													<a class="" node="21" ><i class="fa fa-angle-right level2"></i><span>驻区、民营医疗卫生单位</span></a>
+													</li>
+													</ul>
+													</li>
+													</ul>
+											</div>
+										</div>
+										<b class="popup-label">&nbsp;</b>
+										<div>
+											<div id="addr_list" style="width:100%;height:170px;"></div>
+										</div>
+									</div>
+									<div class="col-30 pull-left">
+										<div class="col-7 pull-left text-center mid" style="margin-top: 24px;">
+											<a onclick="add_address('rc');" class="btn btn-sm btn-primary">选择</a>
+											<a onclick="select_all();" class="btn btn-sm btn-primary">全选</a>
+										</div>
+										<div class="clearfix" >
+											<b class="popup-label">参与人员</b><span id="rc_count"></span>
+											<div class="col-23 pull-right">
+												<div id="rc" class="selected" style="width:100%;height:369px;overflow:hidden">
+													<ul></ul>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+                    </div>
+                    <div class="modal-footer">
+              			<div class="pull-right">
+							<a onclick="save();" class="btn btn-sm btn-primary">确定</a>
+						</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script type="text/javascript">
+	function page_init(){
+		laydate({elem: '#form_time'});
+		awesomplete_form_unit_name("form_unit","{:url('get_have_sended_unite_list')}");
+	}
+	function send_pass(){
+		$("#executor").val("");//清空接受列表中的人员;
+		$("#actor_wrap span.address_list span").each(function() {
+			$("#executor").val($("#executor").val() + $(this).find("b").text() + '|' + $(this).attr("data") + ";");
+		});
+		var send_data=$("#form_data").serializeArray();
+		console.log(send_data);
+
+		$("#send").hide();
+		$.post("{:url('save_task_pass')}",send_data,function(data){
+			ui_alert(data['msg']);
+			if(data['code'] !== 1){
+				$("#send").show();
+			}
+			console.log(data);
+		});
+	}
+    function awesomplete_form_unit_name(name_element,get_name_url){
+        $.get(get_name_url,{},function(data){
+            var name=[];
+            console.log(data);
+            for(var i=0;i<data.length;i++){
+                name[i] = data[i]['form_unit'];
+            }
+            var input = document.getElementById(name_element);
+            new Awesomplete(input, {
+                minChars: 1,
+                list: name,
+            });
+        });
+    }
+</script>
+{/block}
