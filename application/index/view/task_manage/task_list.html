@@ -168,45 +168,70 @@
         awesomplete_user_name("user_name","{:url('get_user_name_list')}");
     }
     function init_not_finished_table(){
-        var url="{:url('get_task_list')}";
-        //未签收
-        var column_list=
-        [
-            {
-                checkbox: true
-            },
-            {
-                field: 'id',
-                title: '编号',
-            },
-            {
-                field: 'user_name',
-                title: '发送者：',
-            },
-            {
-                field: 'name',
-                title: '标题',
-                formatter: notFinishedTitleFormatter
-            },
-            {
-                field: 'file_flag',
-                title: '附件',
-                formatter: fileFlagFormatter
-            },
-            {
-                field: 'create_time',
-                title: '发送时间',
-            },
-        ];
+        var notFinishedTable = new NotFinishedTableInit();
+        notFinishedTable.Init();
+    }
+
+    var NotFinishedTableInit = function () {
+        var oNotFinishedTableInit = new Object();
+        //初始化Table
+        oNotFinishedTableInit.Init = function () {
+            $('#notFinishedTable').bootstrapTable({
+                url: "{:url('get_task_list')}",         //请求后台的URL（*）
+                method: 'get',                      //请求方式（*）
+                striped: false,                      //是否显示行间隔色
+                pageSize: 20,                       //每页的记录行数（*）
+                pageList: [10,20, 30,40],        //可供选择的每页的行数（*）       //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+                pagination: true,                   //是否显示分页（*）
+                uniqueId: 'id',
+                sidePagination:'server',//指定服务器端分页
+                columns: [
+                    {
+                        checkbox: true
+                    },
+                    {
+                        field: 'id',
+                        title: '编号',
+                    },
+                    {
+                        field: 'user_name',
+                        title: '发送者：',
+                    },
+                    {
+                        field: 'name',
+                        title: '标题',
+                        formatter: notFinishedTitleFormatter
+                    },
+                    {
+                        field: 'file_flag',
+                        title: '附件',
+                        formatter: fileFlagFormatter
+                    },
+                    {
+                        field: 'create_time',
+                        title: '发送时间',
+                    },
+                ],
+                onClickRow:OnClickFunction,
+                queryParams:searchParams,
+            });
+        };
         searchParams=function (params) {
             var user_name =$("#search_condition_form #user_name").val();
             var title =$("#search_condition_form #title").val();
-            var data = {'type':'not_finished','title':title,'user_name':user_name};
+            var data = {
+                'type':'not_finished',
+                'title':title,
+                'user_name':user_name,
+                'limit':params.limit,
+                'offset':params.offset,
+                'order':params.order,
+            };
             return data;
         };
-        var notFinishedTable = new TableInit('notFinishedTable',url,'id',column_list,OnClickFunction,searchParams,false);
-        notFinishedTable.Init();
-    }
+        return oNotFinishedTableInit;
+    };
+
     function notFinishedTitleFormatter(value, row, index) {
         var table = "notFinishedTable";
         return [
@@ -299,13 +324,15 @@
         }
         $('#readModal').modal('show');
     }
-// EXCEL:fa-file-excel-o
-             // WORD:fa-file-word-o
-             // PDF:fa-file-pdf-o
-             // 图片:fa-file-image-o
-             // PPT:fa-file-powerpoint-o
-             // 视频:fa-file-video-o
-             // 压缩包:fa-file-zip-o
+    /************附件图标*********/
+    // EXCEL:fa-file-excel-o
+    // WORD:fa-file-word-o
+    // PDF:fa-file-pdf-o
+    // 图片:fa-file-image-o
+    // PPT:fa-file-powerpoint-o
+    // 视频:fa-file-video-o
+    // 压缩包:fa-file-zip-o
+    /*****************************/
     function get_file_icon(file_type){
         var file_icon = "fa fa-file";
         switch(file_type){
@@ -423,42 +450,66 @@
     }
 
     function init_finished_table(){
-        var url="{:url('get_task_list')}";
-        //已签收
-        var column_list=
-        [
-            {
-                field: 'id',
-                title: '编号',
-            },
-            {
-                field: 'user_name',
-                title: '发送者：',
-            },
-            {
-                field: 'name',
-                title: '标题',
-                formatter: FinishedTitleFormatter
-            },
-            {
-                field: 'file_flag',
-                title: '附件',
-                formatter: fileFlagFormatter
-            },
-            {
-                field: 'create_time',
-                title: '发送时间',
-            },
-        ];
+        var finishedTable = new FinishedTableInit();
+        finishedTable.Init();
+    }
+
+    var FinishedTableInit = function () {
+        var oFinishedTableInit = new Object();
+        //初始化Table
+        oFinishedTableInit.Init = function () {
+            $('#finishedTable').bootstrapTable({
+                url: "{:url('get_task_list')}",         //请求后台的URL（*）
+                method: 'get',                      //请求方式（*）
+                striped: false,                      //是否显示行间隔色
+                pageSize: 20,                       //每页的记录行数（*）
+                pageList: [10,20, 30,40],        //可供选择的每页的行数（*）       //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+                pagination: true,                   //是否显示分页（*）
+                uniqueId: 'id',
+                sidePagination:'server',//指定服务器端分页
+                columns: [
+                    {
+                        field: 'id',
+                        title: '编号',
+                    },
+                    {
+                        field: 'user_name',
+                        title: '发送者：',
+                    },
+                    {
+                        field: 'name',
+                        title: '标题',
+                        formatter: FinishedTitleFormatter
+                    },
+                    {
+                        field: 'file_flag',
+                        title: '附件',
+                        formatter: fileFlagFormatter
+                    },
+                    {
+                        field: 'create_time',
+                        title: '发送时间',
+                    },
+                ],
+                onClickRow:OnClickFunction,
+                queryParams:searchParams,
+            });
+        };
         searchParams=function (params) {
             var user_name =$("#search_condition_form #user_name").val();
             var title =$("#search_condition_form #title").val();
-            var data = {'type':'finished','title':title,'user_name':user_name};
+            var data = {
+                'type':'finished',
+                'title':title,
+                'user_name':user_name,
+                'limit':params.limit,
+                'offset':params.offset,
+                'order':params.order,
+            };
             return data;
         };
-        var finishedTable = new TableInit('finishedTable',url,'id',column_list,OnClickFunction,searchParams,false);
-        finishedTable.Init();
-    }
+        return oFinishedTableInit;
+    };
     function FinishedTitleFormatter(value, row, index) {
         var table = "finishedTable";
         return [
@@ -469,46 +520,67 @@
     }
 
     function init_send_table(){
-        var url="{:url('get_send_task_list')}";
-        //已签收
-        var column_list=
-        [
-            {
-                field: 'id',
-                title: '编号',
-            },
-            {
-                field: 'user_name',
-                title: '发送者：',
-            },
-            {
-                field: 'name',
-                title: '标题',
-                formatter: sendTitleFormatter
-            },
-            {
-                field: 'file_flag',
-                title: '附件',
-                formatter: fileFlagFormatter
-            },
-            {
-                field: 'operation',
-                title: '操作',
-                formatter: sendOperationFormatter
-            },
-            {
-                field: 'create_time',
-                title: '发送时间',
-            },
-        ];
+        var sendTable = new SendTableInit();
+        sendTable.Init();
+    }
+    var SendTableInit = function () {
+        var oSendTableInit = new Object();
+        //初始化Table
+        oSendTableInit.Init = function () {
+            $('#sendTable').bootstrapTable({
+                url: "{:url('get_send_task_list')}",         //请求后台的URL（*）
+                method: 'get',                      //请求方式（*）
+                striped: false,                      //是否显示行间隔色
+                pageSize: 20,                       //每页的记录行数（*）
+                pageList: [10,20, 30,40],        //可供选择的每页的行数（*）       //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+                pagination: true,                   //是否显示分页（*）
+                uniqueId: 'id',
+                sidePagination:'server',//指定服务器端分页
+                columns: [
+                    {
+                        field: 'id',
+                        title: '编号',
+                    },
+                    {
+                        field: 'user_name',
+                        title: '发送者：',
+                    },
+                    {
+                        field: 'name',
+                        title: '标题',
+                        formatter: sendTitleFormatter
+                    },
+                    {
+                        field: 'file_flag',
+                        title: '附件',
+                        formatter: fileFlagFormatter
+                    },
+                    {
+                        field: 'operation',
+                        title: '操作',
+                        formatter: sendOperationFormatter
+                    },
+                    {
+                        field: 'create_time',
+                        title: '发送时间',
+                    },
+                ],
+                onClickRow:OnClickFunction,
+                queryParams:searchParams,
+            });
+        };
         searchParams=function (params) {
             var title =$("#search_condition_form #title").val();
-            var data = {'title':title};
+            var data = {
+                'title':title,
+                'limit':params.limit,
+                'offset':params.offset,
+                'order':params.order,
+            };
             return data;
         };
-        var finishedTable = new TableInit('sendTable',url,'id',column_list,OnClickFunction,searchParams,false);
-        finishedTable.Init();
-    }
+        return oSendTableInit;
+    };
     function sendTitleFormatter(value, row, index) {
         var table = "sendTable";
         return [

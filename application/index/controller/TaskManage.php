@@ -39,7 +39,7 @@ class TaskManage extends CommonController
         $view=new View();
         return $view->fetch('task_list'); 
     }
-    public function get_task_list($type,$user_name,$title){
+    public function get_task_list($type,$user_name,$title,$offset,$limit){
         if($type == 'not_finished'){
             $where_log['status'] = 0;
             $where_log['executor'] = $this->get_user_id();
@@ -60,7 +60,11 @@ class TaskManage extends CommonController
         if(!empty($title)){
             $where_task['name'] = array('like',"%$title%");                
         }
-        $task_list = Task::where($where_task)->order('create_time desc')->select()->toArray();
+        $task_list = Task::where($where_task)
+                ->limit($offset,$limit)
+                ->order('create_time desc')
+                ->select()
+                ->toArray();
         foreach ($task_list as $key => $task) {
             $task_list[$key]['file_list']= array();
             $task_list[$key]['file_flag']= 0;
@@ -77,14 +81,21 @@ class TaskManage extends CommonController
                 }
             }
         }
-        return $task_list;
+      $result["rows"] = $task_list;
+      $result["total"]= Task::where($where_task)
+                ->count('id');
+      return $result;
     }
-    public function get_send_task_list($title){
+    public function get_send_task_list($title,$offset,$limit){
         $where_task['user_id'] = $this->get_user_id();
         if(!empty($title)){
             $where_task['name'] = array('like',"%$title%");               
         }
-        $task_list = Task::where($where_task)->order('create_time desc')->select()->toArray();
+        $task_list = Task::where($where_task)
+                ->limit($offset,$limit)
+                ->order('create_time desc')
+                ->select()
+                ->toArray();
         foreach ($task_list as $key => $task) {
             $task_list[$key]['file_list']= array();
             $task_list[$key]['file_flag']= 0;
@@ -101,7 +112,10 @@ class TaskManage extends CommonController
                 }
             }
         }
-        return $task_list;
+        $result["rows"] = $task_list;
+        $result["total"]= Task::where($where_task)
+                ->count('id');
+        return $result;
     }
     public function get_not_finished_num(){
         $where_log['status'] = 0;
