@@ -48,14 +48,19 @@ class TaskPass extends CommonController
         	$log_data['receiver_id'] = $id_name_str[1];
         	$log_data['receiver_name'] = $id_name_str[0];
         	$log_data['status'] = 0;
+            //is_first_step = 1 处理人填写的意见为拟办意见
+            $log_data['is_first_step'] = 1;
         	$task_pass_log = new TaskPassLog();
         	$task_pass_log->save($log_data);
         }
         $this->success("操作成功");
 	}
-	public function get_send_pass_list(){
+	public function get_send_pass_list($title){
 		$where_task['creater_id'] = Session::get('id');
 		$recall=[];
+        if(!empty($title)){
+            $where_task['form_title'] = array('like',"%$title%");                
+        }
 		$task_list = TaskPassInfo::where($where_task)->order('id desc')->select()->toArray();		
     	foreach ($task_list as $key => $task) {
             $file_list= array();
@@ -86,6 +91,7 @@ class TaskPass extends CommonController
 				'file_flag'=>$file_flag,
 				'form_title'=>$task['form_title'],
 				'form_unit'=>$task['form_unit'],
+                'form_id'=>$task['form_id'],
 				'form_time'=>$task['form_time'],
 				'form_leavel'=>$task['form_leavel'],
 				'suggestion'=>$task['suggestion'],
@@ -97,6 +103,11 @@ class TaskPass extends CommonController
     	}
     	return $recall;
 	}
+    public function get_not_finished_num(){
+        $where_log['status'] = 0;
+        $where_log['receiver_id'] = $this->get_user_id();
+        return  TaskPassLog::where($where_log)->count('id');
+    }
     public function get_task_pass_list($type,$title){
         if($type == 'not_finished'){
             $where_log['status'] = 0;
@@ -110,12 +121,23 @@ class TaskPass extends CommonController
 
 		$task_pass_id_list = TaskPassLog::where($where_log)->column('task_pass_id');
         $where_task['id'] = array('in',$task_pass_id_list);
+        if(empty($task_pass_id_list)){
+            return [];
+        }
         if(!empty($title)){
             $where_task['form_title'] = array('like',"%$title%");                
         }
-        $task_list = TaskPassInfo::where($where_task)->order('id desc')->select()->toArray();
+        $task_list = TaskPassInfo::where($where_task)
+                ->order('id desc')
+                ->select()
+                ->toArray();
+        if(empty($task_list)){
+            return [];
+        }
         $task_log_list = TaskPassLog::where($where_log)->select()->toArray();
-
+        if(empty($task_log_list)){
+            return [];
+        }
         $recall=[];
         foreach ($task_log_list as $key => $log) {
         	foreach ($task_list as $key => $task) {
@@ -147,6 +169,7 @@ class TaskPass extends CommonController
         				'task_pass_id'=>$log['task_pass_id'],
         				'file_list'=>$file_list,
         				'file_flag'=>$file_flag,
+                        'form_id'=>$task['form_id'],
         				'form_title'=>$task['form_title'],
         				'form_unit'=>$task['form_unit'],
         				'form_time'=>$task['form_time'],
@@ -160,33 +183,7 @@ class TaskPass extends CommonController
         		}
         	}
         }
-        //dump($recall);
         return $recall;
-        /*
-        $task_pass_id_list = TaskPassLog::where($where_log)->column('task_pass_id');
-        $where_task['id'] = array('in',$task_pass_id_list);
-        if(!empty($title)){
-            $where_task['form_title'] = array('like',"%$title%");                
-        }
-        $task_list = TaskPassInfo::where($where_task)->order('id desc')->select()->toArray();
-        foreach ($task_list as $key => $task) {
-            $task_list[$key]['file_list']= array();
-            $task_list[$key]['file_flag']= 0;
-            if(!empty($task['add_file'])){
-                //有附件
-                $task_list[$key]['file_flag']= 1;
-                $file_id_list = explode(';', $task['add_file']);
-                foreach ($file_id_list as $id_key => $file_id) {
-                    $file = File::get($file_id);
-                    $file_url= url('download','file_id='.$file_id);
-                    if(!empty($file)){
-                        array_push($task_list[$key]['file_list'], ['file_name'=>$file->name,'file_url'=>$file_url]);
-                    }
-                }
-            }
-        }
-        */
-        //return $task_list;
     }
     public function get_suggestion_list($task_pass_id){
     	$suggestion_list = [];
@@ -321,50 +318,29 @@ class TaskPass extends CommonController
                     ->select();      
         return $unit_list;  
     }
-    public function test($task_pass_id){
-        $leader_suggestion ="";
-        $other_suggestion ="";
-        $task_log_list = TaskPassLog::where(['task_pass_id'=>$task_pass_id])->select()->toArray();
-        dump($task_log_list);
-        foreach ($task_log_list as $key => $task_log) {
-            $user_info = Db::table('user')->where(['id'=>$task_log['receiver_id']])->find();
-            if($user_info['dept_id'] === 67){
-                $leader_suggestion = $leader_suggestion.$task_log['suggestion'].'<img src="'.$user_info['sign_pic'].'"><br>';
-            }else{
-                $other_suggestion = $other_suggestion.$task_log['suggestion'].'<img src="'.$user_info['sign_pic'].'"><br>';
-            }
-        }
-        dump($leader_suggestion);
-        dump($other_suggestion);
-    }
-    public function download($file_id){     
-        $File = new File();
-        $root = FILE_DOWNLOAD_ROOT_PATH;   
-        if (false === $File -> download($root, $file_id)) {
-            $this -> error($File -> getError());
-        }   
-    }
     public function print_task_pass_result($task_pass_id){
         $task_pass = TaskPassInfo::get($task_pass_id);
         $form_time = date_format(date_create($task_pass['form_time']),"Y.m.d");
         $mpdf=new \mPDF('zh-CN',array(210,320),'','宋体');
         $mpdf->useAdobeCJK = true;
+        $first_suggestion ="";
         $leader_suggestion ="";
         $other_suggestion ="";
         $task_log_list = TaskPassLog::where(['task_pass_id'=>$task_pass_id])->select()->toArray();
         foreach ($task_log_list as $key => $task_log) {
             $user_info = Db::table('user')->where(['id'=>$task_log['receiver_id']])->find();
             $time = date_format(date_create($task_log['finished_time']),"y.m.d");
-            if($user_info['dept_id'] === 67){
-                $leader_suggestion = $leader_suggestion.$task_log['suggestion'].'<span class="time">&nbsp;&nbsp;'.$time.'</span>&nbsp;&nbsp;<img src="'.$user_info['sign_pic'].'"><br>';
-                /*
-                $leader_suggestion = $leader_suggestion.$task_log['suggestion'].'&nbsp;&nbsp;<img src="'.$user_info['sign_pic'].'"><span class="time">&nbsp;&nbsp;'.$time.'</span><br>';
-                */
+            if($task_log['is_first_step'] == 1){
+                //拟办意见
+                $first_suggestion = $first_suggestion.$task_log['suggestion'].'<span class="time">&nbsp;&nbsp;'.$time.'</span>&nbsp;&nbsp;<img src="'.$user_info['sign_pic'].'"><br>';
             }else{
-                $other_suggestion = $other_suggestion.$task_log['suggestion'].'<span class="time">&nbsp;&nbsp;'.$time.'</span>&nbsp;&nbsp;<img src="'.$user_info['sign_pic'].'"><br>';
-                /*
-                $other_suggestion = $other_suggestion.$task_log['suggestion'].'&nbsp;&nbsp;<img src="'.$user_info['sign_pic'].'"><span class="time">&nbsp;&nbsp;'.$time.'</span><br>';
-                */
+                if($user_info['dept_id'] === 67){
+                    //领导批示
+                    $leader_suggestion = $leader_suggestion.$task_log['suggestion'].'<span class="time">&nbsp;&nbsp;'.$time.'</span>&nbsp;&nbsp;<img src="'.$user_info['sign_pic'].'"><br>';
+                }else{
+                    //传阅签章
+                    $other_suggestion = $other_suggestion.$task_log['suggestion'].'<span class="time">&nbsp;&nbsp;'.$time.'</span>&nbsp;&nbsp;<img src="'.$user_info['sign_pic'].'"><br>';
+                }
             }
         }
 
@@ -415,7 +391,7 @@ class TaskPass extends CommonController
                 </tr>
                 <tr>
                     <td class="top-1 td-title">拟<br>办<br>意<br>见</td>
-                    <td class="top-2 td-suggestion" colspan="5">'.$task_pass['suggestion'].'</td>
+                    <td class="top-2 td-suggestion" colspan="5">'.$first_suggestion.'</td>
                 </tr>
                 <tr>
                     <td class="top-1 td-title">领<br><br><br>导<br><br><br>批<br><br><br>示</td>

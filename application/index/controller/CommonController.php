@@ -81,6 +81,13 @@ class CommonController extends Controller
             Log::record($info->getError());
         }
     }
+    public function download($file_id){     
+        $File = new File();
+        $root = FILE_DOWNLOAD_ROOT_PATH;   
+        if (false === $File -> download($root, $file_id)) {
+            $this -> error($File -> getError());
+        }   
+    }
     //数字金额转大写金额
     public  function NumToCNMoney($num){
         $c1 = "零壹贰叁肆伍陆柒捌玖";

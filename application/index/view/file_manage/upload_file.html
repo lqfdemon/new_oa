@@ -1,0 +1,165 @@
+{extend name="common_page" /}
+{block name="private_file"}
+	<!-- webuploader -->
+	<link rel="stylesheet" type="text/css" href="../../public/static/webuploader/css/webuploader.css" />
+  <script type="text/javascript" src="../../public/static/webuploader/js/webuploader.js"></script>
+{/block}
+{block name="content"}
+<body onload="page_init();">
+   <div class="wrapper wrapper-content animated fadeInRight">
+      <div class="row">       
+	      <div class="ibox float-e-margins">
+	        <div class="ibox-title">
+	          <h5>常用文件上传</h5>
+	        </div>
+	        <div class="ibox-content"  >
+            <div id="uploader" class="wu-example">
+            <!--用来存放文件信息-->
+            <div id="thelist" class="uploader-list"></div>
+            <div class="btns">
+                <div id="picker">选择文件</div>
+            </div>
+	        </div>
+	        </div>
+	    </div>
+	  </div>
+	  <div class="row">       
+	      <div class="ibox float-e-margins">
+	        <div class="ibox-title">
+	          <h5>常用文件查找</h5>
+	        </div>
+	        <div class="ibox-content"  >
+						<div class="row">
+							<form class="form-horizontal m-t" id="search_condition_form">
+					      <div class="form-group">             
+				          <label class="col-sm-2 control-label">文件名：</label>
+				           <div class="col-sm-6">
+				            <input type="text" id="name"  name="name" class="form-control">
+				          </div>
+				          <div class="col-sm-3">
+				            <button type="button"  class="btn btn-primary" onclick="refresh_table();"><i class="fa fa-search"></i> 搜索</button>
+				          </div>
+					      </div>
+						  </form>
+						</div>
+						<div class="row">
+							<table id="tb_file"></table>
+						</div>
+	        </div>
+	    </div>
+	  </div>
+	</div>
+<script type="text/javascript">
+    function page_init(){
+        init_file_tb();
+    }
+	/************文件列表**************/
+    function init_file_tb(){
+        var Table = new FileTableInit();
+        Table.Init();
+    }
+    var FileTableInit = function () {
+        var fileTableInit = new Object();
+        //初始化Table
+        fileTableInit.Init = function () {
+            $('#tb_file').bootstrapTable({
+                url: "{:url('get_file_list')}",         //请求后台的URL（*）
+                method: 'get',                      //请求方式（*）
+                striped: false,                      //是否显示行间隔色
+                pageSize: 5,                       //每页的记录行数（*）
+                pageList: [5, 10],        //可供选择的每页的行数（*）       //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+                pagination: true,                   //是否显示分页（*）
+                queryParams: fileTableInit.queryParams,//传递参数（*）
+                uniqueId: "id",
+                columns: [
+               	{
+                    field: 'name',
+                    title: '名称',
+                },{
+                    field: 'operation',
+                    title: '下载',
+                    align: 'center',
+                    formatter:dowloadFormatter
+                }
+                ]
+            });
+        };
+        fileTableInit.queryParams = function (params) {
+            var data = {
+            	'class':1,
+            	'name':$("#search_condition_form #name").val()
+            };
+            return data;
+        };
+        return fileTableInit;
+    };
+    function dowloadFormatter(value, row, index) {
+        return [
+            '<a class="add" title="下载" href="'+row['url']+'">',
+            '<i class="fa fa-download"></i>下载',
+            '</a>  ',
+        ].join('');
+    }
+    function refresh_table(){
+        $('#tb_file').bootstrapTable('refresh');
+        $('#tb_file').bootstrapTable('selectPage', 1);
+    }
+  /************文件上传**************/ 
+  var $list=$("#thelist");   //这几个初始化全局的百度文档上没说明，好蛋疼。  
+  var uploader = WebUploader.create({
+      // 选完文件后，是否自动上传。  
+      auto: true, 
+      // swf文件路径
+      swf: '../../public/static/webuploader/js/Uploader.swf',
+
+      // 文件接收服务端。
+      server: "{:url('upload')}",
+
+      // 选择文件的按钮。可选。
+      // 内部根据当前运行是创建，可能是input元素，也可能是flash.
+      pick: '#picker',
+
+      // 不压缩image, 默认如果是jpeg，文件上传前会压缩一把再上传！
+      resize: false
+  });
+  // 当有文件被添加进队列的时候
+  uploader.on( 'fileQueued', function( file ) {
+      $list.append( '<div id="' + file.id + '" class="item">' +
+          '<h4 class="info">' + file.name + '</h4>' +
+          '<p class="state">等待上传...</p>' +
+      '</div>' );
+  });
+  // 文件上传过程中创建进度条实时显示。
+  uploader.on( 'uploadProgress', function( file, percentage ) {
+      var $li = $( '#'+file.id ),
+          $percent = $li.find('.progress .progress-bar');
+      // 避免重复创建
+      if ( !$percent.length ) {
+          $percent = $('<div class="progress progress-striped active">' +
+            '<div class="progress-bar" role="progressbar" style="width: 0%">' +
+            '</div>' +
+          '</div>').appendTo( $li ).find('.progress-bar');
+      }
+
+      $li.find('p.state').text('上传中');
+
+      $percent.css( 'width', percentage * 100 + '%' );
+  });
+  uploader.on( 'uploadSuccess', function( file ,response) {
+      $( '#'+file.id ).find('p.state').text('已上传');
+      var sucess_file_id = response;
+      $.post("{:url('set_file_class')}",{'file_id':sucess_file_id,'class':1},function(data){
+      	refresh_table();
+			});
+  });
+
+  uploader.on( 'uploadError', function( file ) {
+      $( '#'+file.id ).find('p.state').text('上传出错');
+  });
+
+  uploader.on( 'uploadComplete', function( file ) {
+      $( '#'+file.id ).find('.progress').fadeOut();
+  });   
+</script>
+</body>
+{/block}

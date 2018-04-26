@@ -5,6 +5,9 @@
     <!-- jstree -->
     <script src="../../public/h_admin/js/plugins/jsTree/jstree.min.js"></script>
     <link href="../../public/h_admin/css/plugins/jsTree/style.min.css" rel="stylesheet">
+    <!-- 表格导出插件 -->
+    <script src="../../public/h_admin/js/plugins/bootstrap-table/extensions/export/bootstrap-table-export.js"></script>
+    <script src="../../public/h_admin/js/plugins/bootstrap-table/tableExport.js"></script>
 {/block}
 {block name="content"}
 <body class="gray-bg" onload="page_init();">
@@ -33,7 +36,7 @@
                 <div class="row" style="padding-top: 30px">
                     <ul class="nav nav-tabs">
                         <li class="active">
-                            <a data-toggle="tab" href="#tab-1"><i class="fa fa-folder"></i> 待处理&nbsp;<span class="label label-warning pull-right" id="not_finished_task_num">16</span></a>
+                            <a data-toggle="tab" href="#tab-1"><i class="fa fa-folder"></i> 待处理&nbsp;<span class="label label-warning pull-right" id="not_finished_task_num"></span></a>
                         </li>
                         <li class=""><a data-toggle="tab" href="#tab-2"><i class="fa fa-folder-open"></i> 已处理&nbsp;</a>
                         </li>
@@ -68,18 +71,8 @@
                 </div>
                 <div class="modal-body">
                     <div class="mail-box">
-                        	<table class="table">
-                        		<thead>
-	                                <tr>
-	                        			<th>处理人</th>
-	                        			<th>类型</th>
-	                        			<th>意见</th>
-	                        		</tr>
-                        		</thead>
-                        		<tbody id="suggestion_tb_body">
-                        			
-                        		</tbody>
-                        	</table>
+                    	<div id="class_tree">   
+                        </div>
                         <div class="mail-attachment">
                             <p>
                                 <h4 id="attachment_num"></h4>
@@ -270,7 +263,7 @@
                     </h4>
                 </div>
                 <div class="modal-body">
-                    <div id="class_tree"></div>
+                    
                 </div>
                 <div class="modal-footer" id="readModalFooter">
 
@@ -284,6 +277,7 @@
 		init_not_finished_table();
 		init_finished_table();
 		init_send_table();
+        set_not_finished_task_num();
 	}
 	function init_not_finished_table(){
         var url="{:url('get_task_pass_list')}";
@@ -339,34 +333,21 @@
     	show_file_list(row);
         $.get("{:url('get_suggestion_list')}",{'task_pass_id':row.task_pass_id},function(data){
         	console.log(data);
-        	show_suggestion_list(data);
+            check_process(row.task_pass_id);
         	$("#readModalFooter").show();
         	$('#readModal').modal('show');
         });
     }
-    function show_suggestion_list(data){
-    		$("#readModal #suggestion_tb_body").empty();
-        	var html="";
-            for (var i = 0; i < data.length; i++) {
-            	var status=""
-            	if(data[i].status == 0){
-            		status="未填写意见";
-            	}else if(data[i].status == 1){
-            		status="已填写意见";
-            	}else if(data[i].status == 2){
-            		status="处理结果";
-            	}else{
-            		status="拟办意见";
-            	}
-                html +=[
-                    '<tr>',
-                    	'<td>'+data[i].user_name+'</td>',
-                    	'<td>'+status+'</td>',
-                    	'<td>'+data[i].suggestion+'</td>',
-                    '</tr>'
-                ].join('');
-            }
-            $("#readModal #suggestion_tb_body").html(html);
+    function check_process(task_pass_id){
+        $.post("{:url('get_pass_log_status')}", { 'task_pass_id': task_pass_id }, function (data) {
+            console.log(data);
+            $('#class_tree').data('jstree', false).empty();
+            $('#class_tree').jstree({
+                'core': {
+                    'data': data,
+                },
+            });
+        });
     }
     function show_file_list(row){
 		$("#readModal #attachment_content").empty(html);
@@ -402,6 +383,7 @@
 		$.post("{:url('tansform_pass')}",send_data,function(data){
 			ui_alert(data['msg']);
 			console.log(data);
+            refresh_all_table();
 		});
     }
     function reject_do(){
@@ -418,6 +400,7 @@
         $.post("{:url('reject_pass')}",send_data,function(data){
             ui_alert(data['msg']);
             console.log(data);
+            refresh_all_table();
         });        
     }
     /*****************************已处理的公文********************/
@@ -466,7 +449,7 @@
     	show_file_list(row);
         $.get("{:url('get_suggestion_list')}",{'task_pass_id':row.task_pass_id},function(data){
         	console.log(data);
-        	show_suggestion_list(data);
+            check_process(row.task_pass_id);
             $("#readModalFooter").hide();
         	$('#readModal').modal('show');
         });
@@ -504,11 +487,6 @@
             },
             {
                 field: 'operation',
-                title: '查看处理进程',
-                formatter: checkOperationFormatter
-            },
-            {
-                field: 'operation',
                 title: '填写处理结果操作',
                 formatter: sendOperationFormatter
             },
@@ -525,10 +503,10 @@
         ];
         searchParams=function (params) {
             var title =$("#search_condition_form #title").val();
-            var data = {};
+            var data = {'title':title};
             return data;
         };
-        var sendTable = new TableInit('sendTable',url,'id',column_list,sendOnClickFunction,searchParams,false);
+        var sendTable = new TableInit('sendTable',url,'id',column_list,sendOnClickFunction,searchParams,true);
         sendTable.Init();
     }
     var hide_row_onclick_flag = false;
@@ -541,7 +519,7 @@
     	show_file_list(row);
         $.get("{:url('get_suggestion_list')}",{'task_pass_id':row.task_pass_id},function(data){
         	console.log(data);
-        	show_suggestion_list(data);
+        	check_process(row.task_pass_id);
             $("#readModalFooter").hide();
         	$('#readModal').modal('show');
         });
@@ -567,34 +545,10 @@
 		$.post("{:url('save_result')}",send_data,function(data){
 			$('#resultModal').modal('hide');
 			ui_alert(data['msg']);
-            $('#sendTable').bootstrapTable('refresh');
-            $('#sendTable').bootstrapTable('selectPage', 1);
+            refresh_all_table();
 		});
 
     }
-    function checkOperationFormatter(value, row, index) {
-        return [
-            '<a  title="查看处理进程" onclick="check_process(' + row['task_pass_id'] + ');">',
-            '<i class="fa fa-search"></i>',
-            '查看处理进程',
-            '</a>  ',
-        ].join('');
-    }
-
-    function check_process(task_pass_id){
-        hide_row_onclick_flag = true;
-        $.post("{:url('get_pass_log_status')}", { 'task_pass_id': task_pass_id }, function (data) {
-            console.log(data);
-            $('#class_tree').data('jstree', false).empty();
-            $('#class_tree').jstree({
-                'core': {
-                    'data': data,
-                },
-            });
-            $("#processModal").modal('show');
-        });
-    }
-
     function printOperationFormatter(value, row, index) {
         if(row.status == 2){
             var url="{:url('print_task_pass_result')}"+"?task_pass_id="+row['task_pass_id'];
@@ -607,6 +561,27 @@
             ].join('');
         }
     }
-
+    /************显示待处理流转个数*************/
+    function set_not_finished_task_num(){
+        console.log('set_not_finished_task_num');
+        $.get('{:url("get_not_finished_num")}',{},function(data){
+            console.log(data);
+            if(data == 0){
+                $('#not_finished_task_num').text('');
+            }else{
+                $('#not_finished_task_num').text(data);
+            }
+        });
+    }
+    /************刷新列表*************/
+    function refresh_all_table(table_id){
+        $('#notFinishedTable').bootstrapTable('refresh');
+        $('#notFinishedTable').bootstrapTable('selectPage', 1);
+        $('#finishedTable').bootstrapTable('refresh');
+        $('#finishedTable').bootstrapTable('selectPage', 1);
+        $('#sendTable').bootstrapTable('refresh');
+        $('#sendTable').bootstrapTable('selectPage', 1);
+        set_not_finished_task_num();
+    }
 </script>
 {/block}
