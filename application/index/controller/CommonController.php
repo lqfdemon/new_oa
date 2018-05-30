@@ -55,14 +55,14 @@ class CommonController extends Controller
         // 移动到框架应用根目录/public/uploads/ 目录下
         $cur_date = date("Y-m");
         Log::record($cur_date);
-        $dir = FILE_DOWNLOAD_ROOT_PATH.'task/'.$cur_date;
+        $dir = FILE_DOWNLOAD_ROOT_PATH.'file/'.$cur_date;
         $info = $file->validate(['size'=>$max_size,'ext'=>$ext_allow])
                      ->rule('uniqid')
                      ->move($dir);
         Log::record($info);
         Log::record($dir);
         if($info){
-            $savepath='task/'.$cur_date.'/';
+            $savepath='file/'.$cur_date.'/';
             $file_name = $info->getFilename();
             $data=[ 'name'=>$_POST['name'],
                     'savename'=>$file_name,

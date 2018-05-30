@@ -444,6 +444,8 @@
         $('#notFinishedTable').bootstrapTable('selectPage', 1);
         $('#finishedTable').bootstrapTable('refresh');
         $('#finishedTable').bootstrapTable('selectPage', 1);
+        $('#sendTable').bootstrapTable('refresh');
+        $('#sendTable').bootstrapTable('selectPage', 1);
         set_not_finished_task_num();
         set_finished_task_num();
         set_send_task_num();
@@ -557,8 +559,13 @@
                     },
                     {
                         field: 'operation',
-                        title: '操作',
+                        title: '查看签收情况',
                         formatter: sendOperationFormatter
+                    },
+                    {
+                        field: 'delete',
+                        title: '撤回',
+                        formatter: deleteOperationFormatter
                     },
                     {
                         field: 'create_time',
@@ -592,9 +599,24 @@
     function sendOperationFormatter(value, row, index) {
         return [
             '<a  title="查看签收情况" onclick="check_receive_list('+row['id']+');">',
+            '<i class="fa fa-search"></i>',
             '查看签收情况',
-            '</a>  ',
+            '</a>',
         ].join('');
+    }
+    function deleteOperationFormatter(value, row, index) {
+        return [
+            '<a  title="撤回" onclick="delete_task('+row['id']+');">',
+            '<i class="fa fa-close"></i>',
+            '撤回',
+            '</a>  ',
+        ].join('');        
+    }
+    function delete_task(id){
+        $.post("{:url('delete_task')}",{'task_id':id},function(data){
+            ui_alert(data['msg']);
+            refresh_all_table();
+        });
     }
     function check_receive_list(task_id){
         $.get("{:url('get_receive_status')}",{'task_id':task_id},function(data){

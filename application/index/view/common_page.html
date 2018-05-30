@@ -184,8 +184,11 @@
     });
     // 当有文件被添加进队列的时候
     uploader.on( 'fileQueued', function( file ) {
+        var onclick_str= 'delete_file_fun('+"'"+file.id+"'"+');';
         $list.append( '<div id="' + file.id + '" class="item">' +
-            '<h4 class="info">' + file.name + '</h4>' +
+            '<h4 class="info">' + file.name + 
+            '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'+
+            '<a onclick="'+onclick_str+'"><i class="fa fa-close"></i>删除</a></h4>' +
             '<p class="state">等待上传...</p>' +
         '</div>' );
     });
@@ -208,6 +211,7 @@
     uploader.on( 'uploadSuccess', function( file ,response) {
         $( '#'+file.id ).find('p.state').text('已上传');
         var add_file = $("#add_file").val();
+        $( '#'+file.id ).attr('db_file_id',response);
         add_file = add_file+response+';';
         $("#add_file").val(add_file);
     });
@@ -219,6 +223,15 @@
     uploader.on( 'uploadComplete', function( file ) {
         $( '#'+file.id ).find('.progress').fadeOut();
     });    
+    function delete_file_fun(file_dom_id){
+        console.log('delete_file');
+        var db_file_id = $( '#'+file_dom_id).attr('db_file_id');
+        var file_list_str=$("#add_file").val();
+        var cur_file_str = db_file_id+';';
+        file_list_str = file_list_str.replace(cur_file_str,'');
+        $("#add_file").val(file_list_str);
+        $( '#'+file_dom_id).remove();
+    }
 </script>
 {/notempty}
 </html>

@@ -50,6 +50,7 @@ class TaskPass extends CommonController
 		$data = $_POST;
 		$data['creater_id']=Session::get('id');
         $data['creater_name']=Session::get('name');
+        $data['create_time']=date("Y-m-d H:i:s");
 		$task_pass = new TaskPassInfo();
         $task_pass->save($data);
 
@@ -73,6 +74,18 @@ class TaskPass extends CommonController
         }
         $this->success("操作成功");
 	}
+    public function delete_task_info($task_pass_id){
+        $num=Db::table('task_pass_log')
+                ->where(['task_pass_id'=>$task_pass_id,'status'=>0])
+                ->count('id');
+        if($num == 0){
+            $this->error("已被处理的公文流转无法撤回！");
+        }else{
+            Db::table('task_pass_info')->where('id',$task_pass_id)->delete();
+            Db::table('task_pass_log')->where('task_pass_id',$task_pass_id)->delete();
+            $this->success("撤回成功");
+        }
+    }
 	public function get_send_pass_list($title){
 		$where_task['creater_id'] = Session::get('id');
 		$recall=[];
