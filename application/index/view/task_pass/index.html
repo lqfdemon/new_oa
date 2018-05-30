@@ -496,6 +496,11 @@
                 formatter: printOperationFormatter
             },
             {
+                field: 'delete',
+                title: '撤回',
+                formatter: deleteOperationFormatter
+            },
+            {
                 field: 'file_flag',
                 title: '附件',
                 formatter: fileFlagFormatter
@@ -560,6 +565,22 @@
                 '</a>  ',
             ].join('');
         }
+    }
+    function deleteOperationFormatter(value, row, index) {
+        return [
+            '<a  title="撤回" onclick="delete_task_info('+row['task_pass_id']+');">',
+            '<i class="fa fa-close"></i>',
+            '撤回',
+            '</a>  ',
+        ].join('');
+    }
+    function delete_task_info(task_pass_id){
+        hide_row_onclick_flag =true;
+        console.log(task_pass_id);
+        $.post("{:url('delete_task_info')}",{'task_pass_id':task_pass_id},function(data){
+            ui_alert(data['msg']);
+            refresh_all_table();
+        });
     }
     /************显示待处理流转个数*************/
     function set_not_finished_task_num(){

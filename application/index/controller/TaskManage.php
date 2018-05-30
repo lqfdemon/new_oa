@@ -268,5 +268,18 @@ class TaskManage extends CommonController
         ->select();
         return $res;  
     }
+    public function delete_task($task_id){
+        $now =intval(time()); 
+        $task= Task::get($task_id);
+        $create_time = strtotime($task->create_time);
+        $diff = $now-$create_time;
+        if($diff<=1800){
+            Db::table('task')->where('id',$task_id)->delete();
+            Db::table('task_log')->where('task_id',$task_id)->delete();
+            $this->success("撤回成功");
+        }else{
+            $this->error("超过30分钟无法撤回!");
+        }
+    }
     
 }

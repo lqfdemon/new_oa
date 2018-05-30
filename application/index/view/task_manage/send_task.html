@@ -191,6 +191,7 @@
 	function send_task_data(){
 		var send_data=$("#form_data").serializeArray();
 		$("#send").hide();
+		console.log(send_data);
 		$.post("{:url('save_task')}",send_data,function(data){
 			if(!data['code']){
 				$("#send").show();
