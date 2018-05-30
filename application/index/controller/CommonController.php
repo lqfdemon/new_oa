@@ -172,4 +172,43 @@ class CommonController extends Controller
         return $data;
 
     }
+    public function send_group_msg($mobile_group,$context){
+        $context = "【卫计局】 ".$context;
+        $msg_list = [];
+        foreach ($mobile_group as $key => $mobile) {
+            array_push($msg_list, ['phone'=>$mobile,'context'=>urlencode($context)]);
+        }
+        $msg = json_encode($msg_list);
+        $url = 'http://119.23.114.82:6666/cmppweb/sendsmspkg' ; 
+        $param = [
+            'uid' => '104508',
+            'pwd' => md5('BmBztn'),
+            'srcphone'=>'106910134508',
+            'msg'=>$msg,
+        ];
+        $res = $this->request_post($url,$param);
+        return $res;
+    }
+    public function send_sginal_msg($mobile,$msg){
+        $msg = "【卫计局】 ".$msg;
+        $url = 'http://119.23.114.82:6666/cmppweb/sendsms' ; 
+        $param = [
+            'uid' => '104508',
+            'pwd' => md5('BmBztn'),
+            'mobile'=>$mobile,
+            'srcphone'=>'106910134508',
+            'msg'=>urlencode($msg),
+        ];
+        $res = $this->request_post($url,$param);
+        return $res;
+    }
+    public function get_msg_balance(){
+        $url = 'http://119.23.114.82:6666/cmppweb/balance' ; 
+        $param = [
+            'uid' => '104508',
+            'pwd' => md5('BmBztn'),
+        ];
+        $res = $this->request_post($url,$param);
+        return $res;
+    }
 }

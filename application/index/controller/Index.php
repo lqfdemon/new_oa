@@ -52,25 +52,4 @@ class Index extends CommonController
         }
         return $menu_list;
     }  
-    public function send_sginal_msg(){
-        $url = 'http://119.23.114.82:6666/cmppweb/sendsms' ; 
-        $param = [
-            'uid' => '104508',
-            'pwd' => md5('BmBztn'),
-            'mobile'=>'13438967430',
-            'srcphone'=>'104508001',
-            'msg'=>urlencode('测试短信'),
-        ];
-        $res = $this->request_post($url,$param);
-        return $res;
-    }
-    public function get_msg_balance(){
-        $url = 'http://119.23.114.82:6666/cmppweb/balance' ; 
-        $param = [
-            'uid' => '104508',
-            'pwd' => md5('BmBztn'),
-        ];
-        $res = $this->request_post($url,$param);
-        return $res;
-    }
 }

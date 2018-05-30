@@ -17,6 +17,24 @@ Loader::import('mpdf.mpdf');
 
 class TaskPass extends CommonController
 {
+    public function every_day_check(){
+        $not_finished_persons=Db::table('task_pass_log')
+            ->where('status',0)
+            ->group('receiver_id')
+            ->coulume('receiver_id');
+        $mobile_group=[];
+        foreach ($not_finished_persons as $key => $value) {
+            # code...
+        }
+        /*
+        $mobile_group=[
+            '13438967430',
+            '15882412726',
+        ];
+        $context = "测试短信 请回家";
+        $this->send_group_msg($mobile_group,$context);
+        */
+    }
 	public function index(){
         $view=new View();
         $view->assign('address_widget',true);
@@ -291,7 +309,7 @@ class TaskPass extends CommonController
 			$icon ="";
 			$suggestion = "";
 			if($task_pass_log['status'] == 0){
-				$text = "(待处理) ".$task_pass_log['receiver_name'];
+				$text = "(待处理) ".$task_pass_log['receiver_name'].'&nbsp;&nbsp;&nbsp;&nbsp;'."<a  onclick='send_msg(".$task_pass_log['receiver_id'].");'><i class='fa fa-envelope'></i>短信提醒</a>";
 				$icon = "fa fa-hourglass-o";
 			}elseif ($task_pass_log['status'] == 1) {
 				$text = "(已处理) ".$task_pass_log['receiver_name']."&nbsp;&nbsp;&nbsp;&nbsp;意见：".$task_pass_log['suggestion'].'&nbsp;&nbsp;&nbsp;&nbsp;'.$task_pass_log['finished_time'];
@@ -311,6 +329,17 @@ class TaskPass extends CommonController
     	}
 		return $log_status_list;
 	}
+    public function send_warning_msg($receiver_id){
+        $user_info = Db::table('user')->where(['id'=>$receiver_id])->find();
+        if(empty($user_info['mobile_tel'])){
+            $this->error("用户手机号码为空");
+        }else{
+            $msg = "您有一条公文流转等待处理，请登录卫计OA系统处理";
+            $res = $this->send_sginal_msg($user_info['mobile_tel'],$msg);
+            Log::record($res);
+            $this->success("发送完成");
+        }
+    }
     function get_have_sended_unite_list(){
         $unit_list=Db::table("task_pass_info")
                     ->field('form_unit')
@@ -348,16 +377,16 @@ class TaskPass extends CommonController
             body{font-size: 16px;color:black;line-height:30px;font-family:方正大标宋简体}
             ul{list-style: none;}ul li{float: left;}
             img {display:block;top:2px;}
-            .time{font-size: 16px;color:black}
+            .time{font-size: 14px;color:black}
             .title{position: relative;width: 100%;text-align: center;font-size: 24px;font-weight: bold;padding-bottom: 20px;color:red;padding-bottom:35px;}
             .check-info{position:relative;width:100%;border-top:3px solid red;border-left:3px solid red; }
             .check-info td{border-right:3px solid red;border-bottom:3px solid red;padding:20px; text-align: center;}
-            .top-1{width: 16%;}
-            .top-2{width: 22%;}
-            .top-3{width: 16%;}
-            .top-4{width: 12%;}
-            .top-5{width: 16%;}
-            .top-6{width: 14%;}
+            .top-1{width: 12%;}
+            .top-2{width: 28%;}
+            .top-3{width: 12%;}
+            .top-4{width: 4%;}
+            .top-5{width: 12%;}
+            .top-6{width: 28%;}
             .td-title{font-size: 16px;color:red}
             .td-content{font-size: 16px;color:black;font-family:方正大标宋简体}
             .td-suggestion{font-size: 16px;color:black;line-height:30px;font-family:方正大标宋简体}
@@ -394,11 +423,11 @@ class TaskPass extends CommonController
                     <td class="top-2 td-suggestion" colspan="5">'.$first_suggestion.'</td>
                 </tr>
                 <tr>
-                    <td class="top-1 td-title">领<br><br><br>导<br><br><br>批<br><br><br>示</td>
+                    <td class="top-1 td-title">领<br>导<br>批<br>示</td>
                     <td class="top-2 td-suggestion" colspan="5">'.$leader_suggestion.'</td>
                 </tr>
                 <tr>
-                    <td class="top-1 td-title">传<br><br><br>阅<br><br><br>人<br><br><br>签<br><br><br>章</td>
+                    <td class="top-1 td-title">传<br><br><br><br><br>阅<br><br><br><br><br>人<br><br><br><br><br>签<br><br><br><br><br>章</td>
                     <td class="top-2 td-suggestion" colspan="5">'.$other_suggestion.'</td>
                 </tr>
                 <tr>

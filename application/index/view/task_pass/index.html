@@ -554,10 +554,12 @@
             var url="{:url('print_task_pass_result')}"+"?task_pass_id="+row['task_pass_id'];
             console.log(url);
             return [
-                '<a  title="打印处理单" target="_blank" href="'+url+'">',
+                '<div onclick="do_nothing();">',
+                '<a  title="打印处理单" target="_blank" href="'+url+'>',
                 '<i class="fa fa-print"></i>',
                 '打印处理单',
                 '</a>  ',
+                '</div>',
             ].join('');
         }
     }
@@ -582,6 +584,16 @@
         $('#sendTable').bootstrapTable('refresh');
         $('#sendTable').bootstrapTable('selectPage', 1);
         set_not_finished_task_num();
+    }
+    /************短信提醒***************************/
+    function send_msg(receiver_id){
+        console.log(receiver_id); 
+        $.post("{:url('send_warning_msg')}",{'receiver_id':receiver_id},function(data){
+            ui_alert(data['msg']);
+        });  
+    }
+    function do_nothing(){
+        hide_row_onclick_flag =true;
     }
 </script>
 {/block}
