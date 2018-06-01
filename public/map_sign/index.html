@@ -1,0 +1,121 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <!--bootstrap-->
+    <link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <!--layer-->
+    <link href="https://cdn.bootcss.com/layer/3.1.0/theme/default/layer.css" rel="stylesheet">
+    <!--webui-popover-->
+    <link href="https://cdn.bootcss.com/webui-popover/2.1.15/jquery.webui-popover.min.css" rel="stylesheet">
+    <!--jquery.picsign本组件关键CSS-->
+    <link href="css/jquery.picsign.css" rel="stylesheet" />
+    <!--demo-->
+    <link href="css/demo.css" rel="stylesheet" />
+</head>
+<body>
+
+    <div class="container">
+        <div class="row">
+            <div class="well">
+                <h2>jquery.picsign演示</h2>
+                <p>初始化后双击添加标注。</p>
+            </div>
+        </div>
+        <div class="row text-center">
+            <div id="div_picsign">
+            </div>
+        </div>
+        <div class="row  text-center">
+            <a class="btn btn-default" onclick="initsign()">初始化</a>
+            <a class="btn btn-default" onclick="getsign()">获取标注数据</a>
+            <a class="btn btn-default" onclick="addsign()">添加标注</a>
+            <a class="btn btn-default" onclick="toggle()">切换显示状态</a>
+            <a class="btn btn-default" onclick="destroysign()">销毁</a>
+        </div>
+        <div class="row">
+            <label>状态输出</label>
+            <div class="well eventoutput">
+            </div>
+            <a class="btn btn-default" onclick="clearoutput()">清空输出</a>
+        </div>
+    </div>
+
+    <!--jquery-->
+    <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+    <!--bootstrap-->
+    <script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <!--layer-->
+    <script src="https://cdn.bootcss.com/layer/3.1.0/layer.js"></script>
+    <!--webui-popover-->
+    <script src="https://cdn.bootcss.com/webui-popover/2.1.15/jquery.webui-popover.min.js"></script>
+    <!--jquery.picsign本组件关键JS-->
+    <script src="js/jquery.picsign.js"></script>
+    <!--demo-->
+    <script src="js/demo.js"></script>
+    <script src="https://cdn.bootcss.com/json2/20160511/json2.min.js"></script>
+    <script>
+        function output(msg) {
+            $(".eventoutput").append("<p>" + msg + "</p>");
+        }
+        function clearoutput() {
+            $(".eventoutput").html("");
+        }
+        function initsign() {
+            var sign = $("#div_picsign").picsign({
+                picurl: 'img/map.png',
+                signdata: [{ left: '50%', top: '50%', msg: "我在正中间" ,background_color:'red'}, { left: '10%', top: '10%', msg: "我在左上角",background_color:'red'}, { left: '90%', top: '10%', msg: "我在右上角",background_color:'red'}, { left: '10%', top: '90%', msg: "我在左下角" ,background_color:'red'}, { left: '90%', top: '90%', msg: "我在右下角" ,background_color:'blue'}],
+                editable: {//是否可编辑
+                    add: true,//是否可添加
+                    update: true,//是否可修改
+                    del: true,//是否可删除
+                    move: true//是否可移动
+                },
+                popwidth: 250,
+                popheight: 154,
+                inputwidth: 400,
+                inputheight: 247,
+                beforeadd: function (data) {
+                    output('【beforeadd】:' + JSON.stringify(data));
+                },
+                onadd: function (data) {
+                    output('【onadd】:' + JSON.stringify(data));
+                },
+                beforeupdate: function (data) {
+                    output('【beforeupdate】:' + JSON.stringify(data));
+                },
+                onupdate: function (data) {
+                    output('【onupdate】:' + JSON.stringify(data));
+                },
+                beforedel: function (data) {
+                    output('【beforedel】:' + JSON.stringify(data));
+                },
+                ondel: function (data) {
+                    output('【ondel】:' + JSON.stringify(data));
+                }
+            });
+            if (sign) {
+                output('初始化');
+            }
+        }
+        function addsign() {
+            $("#div_picsign").picsign("addSign", [{ left: '80%', top: '10%', msg: "我是通过方法添加的" }], true)
+        }
+        function getsign() {
+            var data = $("#div_picsign").picsign("getData");
+            if (data) {
+                output('获取数据:' + JSON.stringify(data));
+            }
+        }
+        function toggle() {
+            $("#div_picsign").picsign("toggle");
+        }
+        function destroysign() {
+            if ($("#div_picsign").picsign("destroy")) {
+                output('销毁');
+            }
+        }
+    </script>
+    <script src='//gitee.com/ArtlessBruin/PicSign/widget_preview_fix'></script>
+</body>
+</html>

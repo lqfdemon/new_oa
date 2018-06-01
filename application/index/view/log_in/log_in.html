@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <title>办公系统</title>
+    <meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
     <meta name="keywords" content="">
     <meta name="description" content="">
@@ -13,43 +14,62 @@
     <script src="../../public/h_admin/js/jquery.min.js?v=2.1.4"></script>
     <script src="../../public/bootbox/bootbox.min.js"></script>
     <script src="../../public/h_admin/js/bootstrap.min.js?v=3.3.6"></script>  
+    <!--layer-->
+    <link href="../../public/layer/theme/default/layer.css" rel="stylesheet">
+    <script src="../../public/layer/layer.js"></script>
+    <!--webui-popover-->
+    <link href="../../public/webui-popover-master/dist/jquery.webui-popover.min.css" rel="stylesheet">
+    <script src="../../public/webui-popover-master/dist/jquery.webui-popover.min.js"></script>
+    <!--map_sign-->
+    <link href="../../public/map_sign/css/jquery.picsign.css" rel="stylesheet" />
+    <script src="../../public/map_sign/js/jquery.picsign.js"></script>
     <!--[if lt IE 9]>
     <meta http-equiv="refresh" content="0;ie.html" />
     <![endif]-->
     <script>
+        $(function(){
+                var size = $(window).width()+'px '+ $(window).height()+'px';
+                $('#background').css('background-size',size);
+            });
         if (window.top !== window.self) {
             window.top.location = window.location;
         }
     </script>
 </head>
-<body class="gray-bg">
-    <div class="middle-box text-center loginscreen  animated fadeInDown" id="log_continaer">
-        <div>
-            <div style="height: 200px;"></div>
-            <h3>新都区卫计局公文系统</h3>
-            <form class="m-t" role="form" >
-                <div class="form-group">
-                    <input id="loginName" ype="text"t  class="form-control" placeholder="用户名" required="">
+<body id="background" class="gray-bg" style="background-image: url('../../public/img/background.jpg');">
+    <div class="row">
+        <div class="col-sm-7">   
+            <div id="div_picsign">
+            </div>   
+        </div>
+        <div class="col-sm-5">
+            <div class="middle-box text-center loginscreen  animated fadeInDown" style="padding-top: 200px;">
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <h3>新都区卫计局公文系统</h3>
+                        <form class="m-t" role="form" >
+                            <div class="form-group">
+                                <input id="loginName" ype="text"t  class="form-control" placeholder="用户名" required="">
+                            </div>
+                            <div class="form-group">
+                                <input id="loginPsw" type="password" class="form-control" placeholder="密码" required="">
+                            </div>
+                            <p class="m-t-md login-errorMsg" id="error-msg" style="color:brown;">&nbsp;</p>
+                        </form>
+                        <button id="login-btn" class="btn btn-primary block full-width m-b">登 录</button >
+                        <div class="signup-footer">
+                            <div class="pull-left" >
+                                &copy; <a href="http://www.xindu.gov.cn/xdqwjj/index.shtml" target="_blank" style="color:black;">新都区卫生和计划生育局</a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <input id="loginPsw" type="password" class="form-control" placeholder="密码" required="">
-                </div>
-                <p class="m-t-md login-errorMsg" id="error-msg" style="color:brown;">&nbsp;</p>
-            </form>
-            <button id="login-btn" class="btn btn-primary block full-width m-b">登 录</button >
-            <div class="signup-footer">
-                <div class="pull-left" >
-                    &copy; <a href="http://www.xindu.gov.cn/xdqwjj/index.shtml" target="_blank" style="color:black;">新都区卫生和计划生育局</a>
-                </div>
-            </div>
+            </div>             
         </div>
     </div>
-
-<script>
+</body>
+<script type="text/javascript">
 var logo_width = $("#log_img").width();
-console.log(logo_width);
-var log_continaer_width = $("#log_continaer").width();
-console.log(log_continaer_width);
 $('#loginName').keydown(function(e){
     if(e.keyCode==13){
         $("#loginPsw").focus();
@@ -78,6 +98,61 @@ function log_in(){
 
     });
 }
+/******************地图***************/
+    $(document).ready(function(){
+        initsign();
+    });
+    /*********** 地图组件 **********/
+    function initsign() {
+        $.get("{:url('get_map_signs')}",{},function(data){
+            console.log('get_map_signs');   
+            console.log(data);    
+            var sign = $("#div_picsign").picsign({
+                picurl: '../../public/map_sign/img/map.png',
+                signdata: data,
+                editable: {
+                    add: false,
+                    update: false,
+                    del: false,
+                    move: false
+                },
+                popwidth: 250,
+                popheight: 154,
+                inputwidth: 400,
+                inputheight: 247,
+                beforeadd: function (data) {
+                    output('【beforeadd】:' + JSON.stringify(data));
+                },
+                onadd: function (data) {
+                    output('【onadd】:' + JSON.stringify(data));
+                },
+                beforeupdate: function (data) {
+                    output('【beforeupdate】:' + JSON.stringify(data));
+                },
+                onupdate: function (data) {
+                    output('【onupdate】:' + JSON.stringify(data));
+                },
+                beforedel: function (data) {
+                    output('【beforedel】:' + JSON.stringify(data));
+                },
+                ondel: function (data) {
+                    output('【ondel】:' + JSON.stringify(data));
+                }
+            });
+            if (sign) {
+                output('初始化');
+            }
+        });
+    }
+    function output(msg) {
+        $(".eventoutput").append("<p>" + msg + "</p>");
+    }
+    function clearoutput() {
+        $(".eventoutput").html("");
+    }
+    function getsign() {
+        var data = $("#div_picsign").picsign("getData");
+        return data;
+    }
 </script>
-</body>
 </html>
