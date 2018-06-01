@@ -125,21 +125,6 @@
 													<li>
 													<a class="" node="5" ><i class="fa fa-angle-right level2"></i><span>局机关科室</span></a>
 													</li>
-													<li>
-													<a class="" node="68" ><i class="fa fa-angle-right level2"></i><span>卫生监督执法大队</span></a>
-													</li>
-													<li>
-													<a class="" node="6" ><i class="fa fa-angle-right level2"></i><span>区级医疗卫生单位</span></a>
-													</li>
-													<li>
-													<a class="" node="7" ><i class="fa fa-angle-right level2"></i><span>社区卫生服务中心</span></a>
-													</li>
-													<li>
-													<a class="" node="8" ><i class="fa fa-angle-right level2"></i><span>公立卫生院</span></a>
-													</li>
-													<li>
-													<a class="" node="21" ><i class="fa fa-angle-right level2"></i><span>驻区、民营医疗卫生单位</span></a>
-													</li>
 													</ul>
 													</li>
 													</ul>
@@ -190,14 +175,23 @@
 		});
 		var send_data=$("#form_data").serializeArray();
 		console.log(send_data);
-		$("#send").hide();
+		var file_str=$("#add_file").val();
+		if(file_str == ""){
+			ui_confirm("没有附件是否继续发送",send_pass_data);
+			return;
+		}else{
+			send_pass_data();
+		}
+	}
+	function send_pass_data(){
+		var send_data=$("#form_data").serializeArray();
 		$.post("{:url('save_task_pass')}",send_data,function(data){
 			ui_alert(data['msg']);
 			if(data['code'] !== 1){
 				$("#send").show();
 			}
-			console.log(data);
 		});
+		$("#send").hide();
 	}
     function awesomplete_form_unit_name(name_element,get_name_url){
         $.get(get_name_url,{},function(data){

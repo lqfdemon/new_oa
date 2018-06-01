@@ -18,9 +18,6 @@
             </div>
             <div class="ibox-content">
             	<div class="row">
-            		<a type="button" href="{:url('index/task_pass/start_pass')}" class="btn btn-primary" onclick=""><i class="fa fa-edit"></i> 发起</a>
-            	</div>
-            	<div class="row">
 	            	<form class="form-horizontal m-t" id="search_condition_form">
 	                    <div class="form-group">             
 	                        <label class="col-sm-2 control-label">公文标题：</label>
@@ -119,14 +116,14 @@
                     
                     <form method='post' id="reject_data" name="reject_data" class="well form-horizontal">
                         <div class="form-group">
-                            <label class="col-sm-2 control-label" for="name">填写退回意见:</label>
+                            <label class="col-sm-2 control-label" for="name">填写拒绝原因:</label>
                             <div class="col-sm-10">
                                 <input class="form-control" type="text" id="suggestion" name="suggestion" value="" check="require">
                             </div>
                         </div>
                         <div class="form-group">
                             <button type="button" class="btn btn-danger center-block" id="send" onclick="reject_do();">
-                                <i class="fa fa-close"></i>&nbsp;&nbsp;退回上一步</button>
+                                <i class="fa fa-close"></i>&nbsp;&nbsp;拒绝处理</button>
                         </div>
                     </form>
                 </div>
@@ -333,13 +330,13 @@
     	show_file_list(row);
         $.get("{:url('get_suggestion_list')}",{'task_pass_id':row.task_pass_id},function(data){
         	console.log(data);
-            check_process(row.task_pass_id);
+            check_process(row.task_pass_id,'normal');
         	$("#readModalFooter").show();
         	$('#readModal').modal('show');
         });
     }
-    function check_process(task_pass_id){
-        $.post("{:url('get_pass_log_status')}", { 'task_pass_id': task_pass_id }, function (data) {
+    function check_process(task_pass_id,type){
+        $.post("{:url('get_pass_log_status')}", { 'task_pass_id': task_pass_id,'type':type}, function (data) {
             console.log(data);
             $('#class_tree').data('jstree', false).empty();
             $('#class_tree').jstree({
@@ -377,19 +374,36 @@
 		$("#actor_wrap span.address_list span").each(function() {
 			$("#executor").val($("#executor").val() + $(this).find("b").text() + '|' + $(this).attr("data") + ";");
 		});
-    	var send_data=$("#suggestion_data").serializeArray();
-		console.log(send_data);
-        $('#readModal').modal('hide');
-		$.post("{:url('tansform_pass')}",send_data,function(data){
-			ui_alert(data['msg']);
-			console.log(data);
+        var executor = $("#executor").val();
+        var suggestion = $("#suggestion_data #suggestion").val();
+        if(suggestion == ''){
+            ui_alert('处理意见必须填写');
+            return;
+        }
+        if(executor == ''){
+            ui_confirm('下一步处理人为空！是否继续操作',finish_do_confirm);
+        }else{
+            finish_do_confirm();
+        }
+    }
+    function finish_do_confirm(){
+        var send_data=$("#suggestion_data").serializeArray();
+        console.log(send_data);
+        $.post("{:url('tansform_pass')}",send_data,function(data){
+            ui_alert(data['msg']);
+            console.log(data);
+            $('#readModal').modal('hide');
             refresh_all_table();
-		});
+        });        
     }
     function reject_do(){
         var task_pass_id = $("#suggestion_data #task_pass_id").val();
         var task_pass_log_id = $("#suggestion_data #task_pass_log_id").val();
         var suggestion = $("#reject_data #suggestion").val();
+        if(suggestion == ''){
+            ui_alert('拒绝原因必须填写');
+            return;
+        }
         var send_data={
             'task_pass_id':task_pass_id,
             'task_pass_log_id':task_pass_log_id,
@@ -449,7 +463,7 @@
     	show_file_list(row);
         $.get("{:url('get_suggestion_list')}",{'task_pass_id':row.task_pass_id},function(data){
         	console.log(data);
-            check_process(row.task_pass_id);
+            check_process(row.task_pass_id,'finished');
             $("#readModalFooter").hide();
         	$('#readModal').modal('show');
         });
@@ -524,7 +538,7 @@
     	show_file_list(row);
         $.get("{:url('get_suggestion_list')}",{'task_pass_id':row.task_pass_id},function(data){
         	console.log(data);
-        	check_process(row.task_pass_id);
+        	check_process(row.task_pass_id,'send');
             $("#readModalFooter").hide();
         	$('#readModal').modal('show');
         });

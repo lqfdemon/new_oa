@@ -48,6 +48,10 @@ class TaskPass extends CommonController
 	}
 	public function save_task_pass(){
 		$data = $_POST;
+        $result=$this->validate($data,'TaskPassInfoValidate');
+        if($result !== true){
+            $this->error($result);
+        }
 		$data['creater_id']=Session::get('id');
         $data['creater_name']=Session::get('name');
         $data['create_time']=date("Y-m-d H:i:s");
@@ -300,7 +304,7 @@ class TaskPass extends CommonController
         $view=new View();
         return $view->fetch('test'); 		
 	}
-	function get_pass_log_status($task_pass_id){
+	function get_pass_log_status($task_pass_id,$type){
 		$task_pass = TaskPassInfo::get($task_pass_id);
 		if(empty($task_pass)){
 			return $this->errot("获取公文传阅信息失败");
@@ -322,7 +326,10 @@ class TaskPass extends CommonController
 			$icon ="";
 			$suggestion = "";
 			if($task_pass_log['status'] == 0){
-				$text = "(待处理) ".$task_pass_log['receiver_name'].'&nbsp;&nbsp;&nbsp;&nbsp;'."<a  onclick='send_msg(".$task_pass_log['receiver_id'].");'><i class='fa fa-envelope'></i>短信提醒</a>";
+				$text = "(待处理) ".$task_pass_log['receiver_name'].'&nbsp;&nbsp;&nbsp;&nbsp;'."<a  onclick='send_msg(".$task_pass_log['receiver_id'].");'>";
+                if($type == 'send'){
+                    $text .= "<i class='fa fa-envelope'></i>短信提醒</a>";
+                }
 				$icon = "fa fa-hourglass-o";
 			}elseif ($task_pass_log['status'] == 1) {
 				$text = "(已处理) ".$task_pass_log['receiver_name']."&nbsp;&nbsp;&nbsp;&nbsp;意见：".$task_pass_log['suggestion'].'&nbsp;&nbsp;&nbsp;&nbsp;'.$task_pass_log['finished_time'];
