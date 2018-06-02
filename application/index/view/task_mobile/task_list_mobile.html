@@ -1,0 +1,132 @@
+{extend name="common_page_mobile" /}
+{block name="content"}
+<body>
+    <div class="container js_container">
+        <div class="page cell">
+            <div class="hd">
+                <center><img src = "../../public/img/logo.png" style="width: 80px"/></center>
+                <p class="weui-panel__hd" style="text-align: center;">成都市新都区卫生和计划生育局</p>
+                <div class="weui-panel__hd" style="text-align: center;">待处理的公文列表</div>
+            </div>
+        </div>
+    </div>
+    <div class="weui-panel weui-panel_access">
+        <div class="weui-panel__bd">
+            {volist name="task_list" id="task"}
+                <div class="weui-media-box weui-media-box_text" onclick="check({$task.id});">
+                    <h4 class="weui-media-box__title">{$task.name}</h4>
+                    <p class="weui-media-box__desc">发送者:{$task.user_name}</p>
+                    <p class="weui-media-box__desc">发送时间:{$task.send_time}</p>
+                </div>
+            {/volist}
+        </div>
+    </div>
+    <div id="half" class='weui-popup__container popup-bottom'>
+        <div class="weui-popup__overlay"></div>
+        <div class="weui-popup__modal">
+            <div class="toolbar">
+                <div class="toolbar-inner">
+                    <a href="javascript:;" class="picker-button close-popup">关闭</a>
+                    <h1 class="title">附件列表</h1>
+                </div>
+            </div>
+            <div class="modal-content">
+                <div class="weui-cells" style="min-height: 200px;" id="file_list">
+                    <a class="weui-cell" href="afadf">
+                        <div class="weui-cell__bd">
+                            <p>附件:adfadf</p>
+                        </div>
+                    </a>
+                </div>              
+            </div>
+        </div>
+    </div>
+</body>
+<script type="text/javascript">
+    function check(task_id) {
+        console.log(task_id);
+        $.actions({
+          title: "选择操作",
+          onClose: function() {
+            console.log("close");
+          },
+          actions: [
+            {
+              text: "查看附件",
+              className: "color-warning",
+              onClick: function() {
+                set_file_list(task_id);
+              }
+            },
+            {
+              text: "签收",
+              className: "color-primary",
+              onClick: function() {
+                var send_data={'task_id':task_id,'executor':"{$user_id}"};
+                console.log(send_data);
+                $.get('{:url("receice")}',send_data,function(data){
+                    $.alert(data['msg']);
+                    setTimeout("refresh_page()",2500);
+                });
+              }
+            },
+            {
+              text: "拒签",
+              className: 'color-danger',
+              onClick: function() {
+                $.prompt({
+                    text: "必须填写拒签理由",
+                    title: "拒签理由",
+                    onOK: function(text) {
+                        var send_data={'task_id':task_id,'reject_reson':text,'executor':"{$user_id}"};
+                        console.log(send_data);
+                        $.get('{:url("reject")}',send_data,function(data){
+                            $.alert(data['msg']);
+                            setTimeout("refresh_page()",2500);
+                        });
+                    },
+                    onCancel: function() {
+                        console.log("取消了");
+                    },
+                    input: ''
+                });
+              }
+            }
+          ]
+        });
+    }
+    function set_file_list(task_id){
+        $.get("{:url('get_file_list')}",{'task_id':task_id},function(data){
+            $("#file_list").empty();
+            var file_list = data;
+            var html = '';
+            for (var i = 0; i < file_list.length; i++) {
+                file_list[i]
+                var file_html= [
+                        '<a class="weui-cell" href="'+file_list[i]['file_url']+'">',
+                            '<div class="weui-cell__bd">',
+                                '<p>附件:'+file_list[i]['file_name']+'</p>',
+                            '</div>',
+                        '</a>',
+                    ].join('');
+                html = html+file_html;
+            }
+            $("#file_list").html(html);
+            $("#half").popup();
+        });
+    }
+    function refresh_page(){
+        window.location.reload();
+    }
+    function receice(){
+        var task_id=$("#readModal #task_id").val();
+        var send_data={'task_id':task_id};
+        console.log(send_data);
+        $.get('{:url("receice")}',send_data,function(data){
+            $('#readModal').modal('hide');
+            ui_alert(data['msg']);
+            refresh_all_table();
+        });
+    }
+</script>
+{/block}

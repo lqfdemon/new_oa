@@ -23,11 +23,6 @@ Loader::import('weixin.wx_sdk');
 
 class TaskManage extends CommonController
 {
-    public function test(){
-        $weixin = new \class_weixin();
-        dump($weixin->access_token);
-        dump($weixin->expires_time);
-    }
     public function send_task(){
         $view=new View();
         $view->assign('address_widget',true);
@@ -144,9 +139,13 @@ class TaskManage extends CommonController
         $num = Task::where($where_task)->count('id');
         return $num;
     }
-    public function receice($task_id){
+    public function receice($task_id,$executor=''){
         $where_log['task_id'] = $task_id;
-        $where_log['executor'] = $this->get_user_id();
+        if(empty($executor)){
+            $where_log['executor'] = $this->get_user_id();
+        }else{
+            $where_log['executor'] = $executor;
+        }
         $task_log_list = TaskLog::where($where_log)->select();
         if(count($task_log_list) == 0){
             $this->error("签收失败");
@@ -166,9 +165,13 @@ class TaskManage extends CommonController
         TaskLog::where($where_log)->update(['status'=>20]);
         $this->success("签收成功");
     }
-    public function reject($task_id,$reject_reson){
+    public function reject($task_id,$reject_reson,$executor=''){
         $where_log['task_id'] = $task_id;
-        $where_log['executor'] = $this->get_user_id();
+        if(empty($executor)){
+            $where_log['executor'] = $this->get_user_id();
+        }else{
+            $where_log['executor'] = $executor;
+        }
         $task_log = TaskLog::get($where_log);
         if(empty($task_log)){
             $this->error("操作失败");
@@ -247,7 +250,7 @@ class TaskManage extends CommonController
             $executor_open_id = $user_wx_info['open_id'];
             $jsonText = array(
                 'touser'=>$executor_open_id, 'template_id'=>$template_id ,
-                'url'=>'',
+                'url'=>"http://www.xcwjwx.com/oa/index/task_mobile/task_list_get_auth",
                 'data'=>array(
                     'first'=>array('value'=>$user_wx_info['name']."您好，您收到一条新公文",'color'=>"#173177",),                               
                     'keyword1'=>array('value'=>$title,'color'=>"#173177",),
