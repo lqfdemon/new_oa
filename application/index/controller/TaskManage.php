@@ -256,7 +256,7 @@ class TaskManage extends CommonController
                     'keyword1'=>array('value'=>$title,'color'=>"#173177",),
                     'keyword2'=>array('value'=>$sender_name,'color'=>"#173177",),
                     'keyword3'=>array('value'=>$date,'color'=>"#173177",),
-                    'remark'=>array('value'=>"请登录办公网查看！",'color'=>"#173177",),       
+                    'remark'=>array('value'=>"点击本消息进行处理！",'color'=>"#173177",),       
                 )
             );  
             $template_data = json_encode($jsonText);

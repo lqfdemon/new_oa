@@ -24,9 +24,13 @@ class TaskMobile extends Controller
         $this->redirect($jump_url);
     }
     public function task_list_mobile($code){
-        $weixin = new \class_weixin();
-        $OAuth2_Access_Token = $weixin->oauth2_access_token($code);
-        $open_id = $OAuth2_Access_Token['openid'];
+        $opend_id = Session::get('opend_id');
+        if(empty($opend_id)){
+            $weixin = new \class_weixin();
+            $OAuth2_Access_Token = $weixin->oauth2_access_token($code);
+            $open_id = $OAuth2_Access_Token['openid'];
+            Session::set('opend_id',$opend_id);
+        }
         $view=new View();
         $user_wx_info = Db::table('user_wx_info')
                 ->where('open_id',$open_id)
@@ -37,6 +41,7 @@ class TaskMobile extends Controller
                 ->column('task_id');
         $task_list = Db::table('task')
                 ->where(['id'=>['in',$task_id_list]])
+                ->order('id','desc')
                 ->select();
         foreach ($task_list as $key => $task) {
             $task_list[$key]['send_time']=date("Y-m-d H:i:s",$task['create_time']);
