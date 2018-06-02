@@ -95,4 +95,11 @@ class TaskMobile extends Controller
         }
 
     }
+    public function download($file_id){     
+        $File = new File();
+        $root = FILE_DOWNLOAD_ROOT_PATH;   
+        if (false === $File -> download($root, $file_id)) {
+            $this -> error($File -> getError());
+        }   
+    }
 }
