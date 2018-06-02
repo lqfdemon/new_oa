@@ -29,7 +29,7 @@ class TaskMobile extends Controller
             $weixin = new \class_weixin();
             $OAuth2_Access_Token = $weixin->oauth2_access_token($code);
             $open_id = $OAuth2_Access_Token['openid'];
-            Session::set('opend_id',$opend_id);
+            Session::set('opend_id',$open_id);
         }
         $view=new View();
         $user_wx_info = Db::table('user_wx_info')
