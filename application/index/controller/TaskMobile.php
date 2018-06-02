@@ -24,12 +24,12 @@ class TaskMobile extends Controller
         $this->redirect($jump_url);
     }
     public function task_list_mobile($code){
-        $opend_id = Session::get('opend_id');
-        if(empty($opend_id)){
+        $open_id = Session::get('open_id');
+        if(empty($open_id)){
             $weixin = new \class_weixin();
             $OAuth2_Access_Token = $weixin->oauth2_access_token($code);
             $open_id = $OAuth2_Access_Token['openid'];
-            Session::set('opend_id',$open_id);
+            Session::set('open_id',$open_id);
         }
         $view=new View();
         $user_wx_info = Db::table('user_wx_info')
