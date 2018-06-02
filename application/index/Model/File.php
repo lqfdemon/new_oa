@@ -55,6 +55,7 @@
 
 				/* 执行下载 */ //TODO: 大文件断点续传
 				header("Content-Description: File Transfer");
+				header("Content-type: text/html; charset=utf-8");
 				header('Content-Length:' . $file['size']);
 				$ua=$_SERVER['HTTP_USER_AGENT'];
 				if (preg_match('/MSIE/',$ua) || preg_match("/Trident\/7.0/", $ua)) {
