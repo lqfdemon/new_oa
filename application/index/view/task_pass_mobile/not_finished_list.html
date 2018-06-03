@@ -1,0 +1,275 @@
+{extend name="common_page_mobile" /}
+{block name="content"}
+<body>
+    <div class="container js_container">
+        <div class="page cell">
+            <div class="hd">
+                <center><img src = "../../public/img/logo.png" style="width: 80px"/></center>
+                <p class="weui-panel__hd" style="text-align: center;">成都市新都区卫生和计划生育局</p>
+                <div class="weui-panel__hd" style="text-align: center;">待处理的公文流转</div>
+            </div>
+        </div>
+    </div>
+    <div class="weui-panel weui-panel_access">
+        <div class="weui-panel__bd">
+            {volist name="task_list" id="task"}
+                <div class="weui-media-box weui-media-box_text" onclick="check({$task.task_pass_id},{$task.id});">
+                    <h4 class="weui-media-box__title">{$task.form_title}</h4>
+                    <p class="weui-media-box__desc">来文时间:{$task.time}</p>
+                    <p class="weui-media-box__desc">来文单位:{$task.form_unit}</p>
+                    <p class="weui-media-box__desc">来文文号:{$task.form_id}</p>
+                    <p class="weui-media-box__desc">流转者:{$task.sender_name}</p>
+                </div>
+            {/volist}
+        </div>
+    </div>
+    <div id="file_list_half" class='weui-popup__container popup-bottom'>
+        <div class="weui-popup__overlay"></div>
+        <div class="weui-popup__modal">
+            <div class="toolbar">
+                <div class="toolbar-inner">
+                    <a href="javascript:;" class="picker-button close-popup">关闭</a>
+                    <h1 class="title">附件列表</h1>
+                </div>
+            </div>
+            <div class="modal-content">
+                <div class="weui-cells" style="min-height: 200px;" id="file_list">
+                    <a class="weui-cell" href="afadf">
+                        <div class="weui-cell__bd">
+                            <p>附件:adfadf</p>
+                        </div>
+                    </a>
+                </div>              
+            </div>
+        </div>
+    </div>
+    <div id="suggest_list_half" class='weui-popup__container popup-bottom'>
+        <div class="weui-popup__overlay"></div>
+        <div class="weui-popup__modal">
+            <div class="toolbar">
+                <div class="toolbar-inner">
+                    <a href="javascript:;" class="picker-button close-popup">关闭</a>
+                    <h1 class="title">处理情况</h1>
+                </div>
+            </div>
+            <div class="modal-content">
+                <div class="weui-cells" style="min-height: 200px;" id="suggest_list">
+                    <a class="weui-cell weui-cell_access" href="javascript:;">
+                        <div class="weui-cell__bd">
+                            <p>管理员：请领导批示</p>
+                        </div>
+                    </a>
+                    <a class="weui-cell weui-cell_access" href="javascript:;">
+                        <div class="weui-cell__bd">
+                            <p>宣传新：请领导批示</p>
+                        </div>
+                    </a>
+                </div>                 
+            </div>
+        </div>
+    </div>
+    <div id="finish_half" class='weui-popup__container popup-bottom'>
+        <div class="weui-popup__overlay"></div>
+        <div class="weui-popup__modal">
+            <div class="toolbar">
+                <div class="toolbar-inner">
+                    <a href="javascript:;" class="picker-button close-popup">关闭</a>
+                    <h1 class="title">处理情况</h1>
+                </div>
+            </div>
+            <div class="modal-content">
+                <div class="weui-cells" style="min-height: 200px;" id="finish">
+                    <input type="hidden" name="task_pass_log_id" id="task_pass_log_id">
+                    <div class="weui-cell">
+                        <div class="weui-cell__hd"><label for="name" class="weui-label">处理意见:</label></div>
+                        <div class="weui-cell__bd">
+                            <input class="weui-input" id="suggestion" name="suggestion" type="text" value="">
+                        </div>
+                    </div>
+                    <div class="weui-cell">
+                        <div class="weui-cell__hd"><label for="name" class="weui-label">转发:</label></div>
+                        <div class="weui-cell__bd">
+                            <textarea class="weui-textarea" id="user_list" type="text" value="" rows="3"></textarea>
+                        </div>
+                    </div>
+                </div> 
+                <div class="weui-btn-area">
+                    <a class="weui-btn weui-btn_primary" href="javascript:" id="tansform_pass_btn">确定</a>
+                </div>                
+            </div>
+        </div>
+    </div>
+</body>
+<script type="text/javascript">
+    function check(task_pass_id,task_pass_log_id){
+        console.log(task_pass_id);
+        $.actions({
+          title: "选择操作",
+          onClose: function() {
+            console.log("close");
+          },
+          actions: [
+            {
+              text: "查看附件",
+              className: "color-warning",
+              onClick: function() {
+                set_file_list(task_pass_id);
+              }
+            },
+            {
+              text: "查看流转情况",
+              className: "color-warning",
+              onClick: function() {
+                set_suggest_list(task_pass_id);
+              }
+            },
+            {
+              text: "处理",
+              className: "color-primary",
+              onClick: function() {
+                $("#task_pass_log_id").val(task_pass_log_id);
+                $("#user_list").val('');
+                $("#suggestion").val('');
+                $("#finish_half").popup();
+              }
+            },
+            {
+              text: "拒绝处理",
+              className: 'color-danger',
+              onClick: function() {
+                $.prompt({
+                    text: "必须填写拒绝理由",
+                    title: "拒绝理由",
+                    onOK: function(text) {
+                        var send_data={'task_pass_id':task_pass_id,'task_pass_log_id':task_pass_log_id,'suggestion':text};
+                        console.log(send_data);
+                        $.get('{:url("reject_pass")}',send_data,function(data){
+                            $.alert(data['msg']);
+                            setTimeout("refresh_page()",2500);
+                        });
+                    },
+                    onCancel: function() {
+                        console.log("取消了");
+                    },
+                    input: ''
+                });
+              }
+            }
+          ]
+        });
+    }
+    function set_file_list(task_pass_id){
+        $.get("{:url('get_file_list')}",{'task_pass_id':task_pass_id},function(data){
+            $("#file_list").empty();
+            var file_list = data;
+            var html = '';
+            for (var i = 0; i < file_list.length; i++) {
+                var file_html= [
+                        '<a class="weui-cell" href="'+file_list[i]['file_url']+'">',
+                            '<div class="weui-cell__bd">',
+                                '<p>附件:'+file_list[i]['file_name']+'</p>',
+                            '</div>',
+                        '</a>',
+                    ].join('');
+                html = html+file_html;
+            }
+            $("#file_list").html(html);
+            $("#file_list_half").popup();
+        });
+    }
+    function set_suggest_list(task_pass_id){
+         $.get("{:url('get_suggest_list')}",{'task_pass_id':task_pass_id},function(data){
+            $("#suggest_list").empty();
+            var suggest_list = data;
+            var html = '';
+            for (var i = 0; i < suggest_list.length; i++) {
+                suggest_list[i]
+                var file_html= [
+                        '<a class="weui-cell weui-cell_access" href="javascript:;">',
+                            '<div class="weui-cell__bd">',
+                                '<p>'+suggest_list[i]['receiver_name']+':'+suggest_list[i]['suggestion']+'</p>',
+                            '</div>',
+                        '</a>',
+                    ].join('');
+                html = html+file_html;
+            }
+            $("#suggest_list").html(html);
+            $("#suggest_list_half").popup();
+        });
+    }
+    function refresh_page(){
+        window.location.reload();
+    }
+    function tansform_pass(){
+        var executor = $("#user_list").val();
+        var suggestion = $("#suggestion").val();
+        console.log('suggestion');
+        console.log(suggestion);
+        if(suggestion == ''){
+            $.alert('处理意见必须填写');
+            return;
+        }
+        if(executor == ''){
+            $.confirm("转发人员为空，是否不需要再转发？", function() {
+                tansform_pass_send_data();
+            }, function() {
+
+            });
+        }else{
+            tansform_pass_send_data();
+        }
+    }
+    function tansform_pass_send_data(){
+        console.log('tansform_pass');
+        var task_pass_log_id = $("#task_pass_log_id").val();
+        var executor = $("#user_list").val();
+        var suggestion = $("#suggestion").val();
+        console.log(executor);
+        var send_data={
+            'task_pass_log_id':task_pass_log_id,
+            'sender_id':"{$user_id}",
+            'suggestion':suggestion,
+            'executors_str':executor,
+        }
+        $.post("{:url('tansform_pass')}",send_data,function(data){
+            $.alert(data['msg']);
+            $.closePopup();
+            setTimeout("refresh_page()",2500);
+        });
+    }
+    $(document).ready(function(){
+        $("#tansform_pass_btn").click(tansform_pass);
+        $.get("{:url('get_allow_users')}",{},function(data){
+            console.log(data);
+            var item_list = [];
+            for (var i = 0; i < data.length; i++) {
+                var index =i+1;
+                var item  ={
+                    'title':data[i]['name'],
+                    'value':index,
+                }
+                item_list.push(item);
+            }
+            console.log(item_list);
+
+            $("#user_list").select({
+                title: "转发给谁",
+                multi: true,
+                min: 0,
+                max: 100,
+                items: item_list,
+                beforeClose: function(values, titles) {
+
+                },
+                onChange: function(d) {
+                    console.log(this, d);
+                },
+                onClose: function (d) {
+                    console.log('close')
+                }
+            });
+
+        })
+    });
+</script>
+{/block}
