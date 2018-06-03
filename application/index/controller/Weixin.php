@@ -33,6 +33,8 @@ class Weixin extends Controller
             $this -> error('帐号必须！');
         } elseif (empty($psw)) {
             $this -> error('密码必须！');
+        }elseif(empty($_POST['name'])){
+            $this -> error('姓名必须！');
         }
         $user = User::where('emp_no',$emp_no)->find();
         if(empty($user)){
