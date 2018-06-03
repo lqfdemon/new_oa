@@ -31,7 +31,7 @@ class TaskPassMobile extends Controller
             $open_id = $OAuth2_Access_Token['openid'];
             Session::set('open_id',$open_id);
         }
-        
+
 		$user_wx_info = Db::table('user_wx_info')
                 ->where('open_id',$open_id)
                 ->find();
