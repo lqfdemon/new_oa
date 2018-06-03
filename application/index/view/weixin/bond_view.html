@@ -53,6 +53,21 @@
 <script>
 function start_bond(){
     var open_id = $("#open_id").val();
+    var emp_no  = $("#loginName").val();
+    if(emp_no == ''){
+        alert('请输入账号！')
+        return;
+    }
+    var psw  = $("#loginPsw").val();
+    if(psw == ''){
+        alert('请输入密码！')
+        return;
+    }
+    var name  = $("#Name").val();
+    if(name == ''){
+        alert('请输入姓名！')
+        return;
+    }
     var dt={
             'open_id':open_id,
             'emp_no':$("#loginName").val(),
