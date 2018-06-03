@@ -231,6 +231,7 @@
             'suggestion':suggestion,
             'executors_str':executor,
         }
+        $("#tansform_pass_btn").hide();
         $.post("{:url('tansform_pass')}",send_data,function(data){
             $.alert(data['msg']);
             $.closePopup();
