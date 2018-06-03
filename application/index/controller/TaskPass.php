@@ -14,6 +14,7 @@ use app\index\model\TaskPassLog;
 use app\index\model\File;
 
 Loader::import('mpdf.mpdf');
+Loader::import('weixin.wx_sdk');
 
 class TaskPass extends CommonController
 {
@@ -26,14 +27,6 @@ class TaskPass extends CommonController
         foreach ($not_finished_persons as $key => $value) {
             # code...
         }
-        /*
-        $mobile_group=[
-            '13438967430',
-            '15882412726',
-        ];
-        $context = "测试短信 请回家";
-        $this->send_group_msg($mobile_group,$context);
-        */
     }
 	public function index(){
         $view=new View();
@@ -75,9 +68,36 @@ class TaskPass extends CommonController
             $log_data['is_first_step'] = 1;
         	$task_pass_log = new TaskPassLog();
         	$task_pass_log->save($log_data);
+            $this->send_receive_msg_to_executor($log_data['receiver_id'],$data['creater_name'],$data['create_time'],$data['form_title'],$data['form_id']);
         }
         $this->success("操作成功");
 	}
+    public function send_receive_msg_to_executor($executor_id,$sender_name,$send_time,$title,$index){
+        $user_wx_info_list = Db::table('user_wx_info')
+                            ->where(['user_id'=>$executor_id])
+                            ->select();
+        foreach ($user_wx_info_list as $key => $user_wx_info) {
+            $date = date('Y-m-d H:i:s');    
+            $template_id="b54O1WKPV6nY_tPylREb1KjGcTKI4vQJRE3fz15nW58";
+            $executor_open_id = $user_wx_info['open_id'];
+            $jsonText = array(
+                'touser'=>$executor_open_id, 'template_id'=>$template_id ,
+                'url'=>"http://www.xcwjwx.com/oa/index/task_pass_mobile/get_auth",
+                'data'=>array(
+                    'first'=>array('value'=>$user_wx_info['name']."您好，您有一条公文流转待处理",'color'=>"#173177",),                               
+                    'keyword1'=>array('value'=>$sender_name,'color'=>"#173177",),
+                    'keyword2'=>array('value'=>$send_time,'color'=>"#173177",),
+                    'keyword3'=>array('value'=>$title,'color'=>"#173177",),
+                    'keyword4'=>array('value'=>$index,'color'=>"#173177",),
+                    'remark'=>array('value'=>"点击本消息进行处理！",'color'=>"#173177",),       
+                )
+            );  
+            $template_data = json_encode($jsonText);
+            Log::record($template_data);
+            $weixin = new \class_weixin();
+            $weixin->send_template_message($template_data);
+        }      
+    }
     public function delete_task_info($task_pass_id){
         $num=Db::table('task_pass_log')
                 ->where(['task_pass_id'=>$task_pass_id,'status'=>0])
@@ -267,6 +287,8 @@ class TaskPass extends CommonController
 			$log_data['parent_node'] = $data['task_pass_log_id'];
         	$task_pass_log = new TaskPassLog();
         	$task_pass_log->save($log_data);
+            $task_pass = TaskPassInfo::get($data['task_pass_id']);
+            $this->send_receive_msg_to_executor($log_data['receiver_id'],$log_data['sender_name'],$log_data['time'],$task_pass['form_title'],$task_pass['form_id']);
         } 
         $where_log = ['task_pass_id'=>$data['task_pass_id'],'status'=>0];
         $not_finished_task_pass_log=TaskPassLog::where($where_log)->order('id desc')->select()->toArray();
