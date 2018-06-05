@@ -176,6 +176,10 @@
 		var send_data=$("#form_data").serializeArray();
 		console.log(send_data);
 		var file_str=$("#add_file").val();
+		if($("#executor").val() == ''){
+			ui_alert('必须选择要发送的对象');
+			return;
+		}
 		if(file_str == ""){
 			ui_confirm("没有附件是否继续发送",send_pass_data);
 			return;

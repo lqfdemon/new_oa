@@ -221,6 +221,7 @@
     }
     function tansform_pass_send_data(){
         console.log('tansform_pass');
+        $("#tansform_pass_btn").hide();
         var task_pass_log_id = $("#task_pass_log_id").val();
         var executor = $("#user_list").val();
         var suggestion = $("#suggestion").val();
@@ -231,8 +232,9 @@
             'suggestion':suggestion,
             'executors_str':executor,
         }
-        $("#tansform_pass_btn").hide();
+        $.showLoading('发送中。。。');
         $.post("{:url('tansform_pass')}",send_data,function(data){
+            $.hideLoading();
             $.alert(data['msg']);
             $.closePopup();
             setTimeout("refresh_page()",2500);
