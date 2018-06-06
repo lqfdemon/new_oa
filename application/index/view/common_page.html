@@ -41,6 +41,8 @@
 {notempty name="address_widget"}
 <script type="text/javascript">
     function popup_address() {
+        $("#rc_count").text('0');
+        $("#rc.selected ul").empty();
         $("#addressModal").modal('show');
     }
     function close_address() {

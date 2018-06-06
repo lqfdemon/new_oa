@@ -110,11 +110,14 @@ class TaskPass extends CommonController
             $this->success("撤回成功");
         }
     }
-	public function get_send_pass_list($title){
+	public function get_send_pass_list($title,$status){
 		$where_task['creater_id'] = Session::get('id');
 		$recall=[];
         if(!empty($title)){
             $where_task['form_title'] = array('like',"%$title%");                
+        }
+        if($status != -1){
+            $where_task['status'] = $status;                
         }
 		$task_list = TaskPassInfo::where($where_task)->order('id desc')->select()->toArray();		
     	foreach ($task_list as $key => $task) {

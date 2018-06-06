@@ -48,6 +48,23 @@
                             <table id="finishedTable"></table>
                         </div>
                         <div id="tab-3" class="tab-pane" style="padding-top: 30px">
+                            <div class="row">
+                                <div class="col-sm-1">
+                                </div>
+                                <form class="form-horizontal">
+                                <div class="form-group">
+                                    <label class="col-sm-1 control-label" >流转状态：</label>
+                                    <div class="col-sm-2">
+                                        <select class="form-control" id="task_pass_status" onchange="status_change();">
+                                            <option value="-1">全部</option>
+                                            <option value="0">意见收集中</option>
+                                            <option value="1">意见收集完成</option>
+                                            <option value="2">办理完成</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </form>
+                            </div>                        
                             <table id="sendTable"></table>
                         </div>
                     </div>
@@ -87,20 +104,14 @@
 						<input type="hidden" id="task_pass_id" name="task_pass_id" >
 						<input type="hidden" id="executor" name="executor" value="">
 						<div class="form-group">
-							<label class="col-sm-2 control-label" for="name">处理意见：</label>
-							<div class="col-sm-10">
-								<input class="form-control" type="text" id="suggestion" name="suggestion" value=""  check="require">
-							</div>
-						</div>
-						<div class="form-group">
 							<label class="col-sm-2 control-label" for="name">转给谁继续填写意见：</label>
 							<div class="col-sm-10">
 								<div id="actor_wrap" class="inputbox">
 									<a class="pull-right btn btn-link text-center" onclick="popup_address();"><i class="fa fa-user"></i> </a>
 									<div class="wrap" >
-										<span class="address_list"></span>
+										<span class="address_list pull-left"></span>
 										<span class="text" >
-											<input class="letter" type="text"  >
+											<input class="letter" type="text"  id="letter">
 										</span>
 									</div>
 									<div class="search dropdown ">
@@ -109,6 +120,12 @@
 								</div>
 							</div>
 						</div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label" for="name">处理意见：</label>
+                            <div class="col-sm-10">
+                                <input class="form-control" type="text" id="suggestion" name="suggestion" value=""  check="require">
+                            </div>
+                        </div>
                         <div class="form-group">
                             <button type="button" class="btn btn-primary center-block" id="send" onclick="finish_do();"><i class="fa fa-save"></i>&nbsp;&nbsp;完成处理</button>
                         </div>
@@ -147,8 +164,7 @@
 									<div class="pull-left">
 										<label>
 											<input class="ace"  type="radio" id="rb_dept" name="type" value="dept" >
-											<span class="lbl">部门</span> </label>
-										
+											<span class="lbl">部门</span> </label>										
 									</div>
 								</div>
 								<div class="popup-body clearfix">
@@ -170,17 +186,6 @@
 													<a class="" node="68" ><i class="fa fa-angle-right level2"></i><span>卫生监督执法大队</span></a>
 													</li>
 													<li>
-													<a class="" node="6" ><i class="fa fa-angle-right level2"></i><span>区级医疗卫生单位</span></a>
-													</li>
-													<li>
-													<a class="" node="7" ><i class="fa fa-angle-right level2"></i><span>社区卫生服务中心</span></a>
-													</li>
-													<li>
-													<a class="" node="8" ><i class="fa fa-angle-right level2"></i><span>公立卫生院</span></a>
-													</li>
-													<li>
-													<a class="" node="21" ><i class="fa fa-angle-right level2"></i><span>驻区、民营医疗卫生单位</span></a>
-													</li>
 													</ul>
 													</li>
 													</ul>
@@ -211,7 +216,7 @@
                     </div>
                     <div class="modal-footer">
               			<div class="pull-right">
-							<a onclick="save();" class="btn btn-sm btn-primary">确定</a>
+							<a onclick="address_save();" class="btn btn-sm btn-primary">确定</a>
 						</div>
                     </div>
                 </div>
@@ -332,6 +337,11 @@
         	console.log(data);
             check_process(row.task_pass_id,'normal');
         	$("#readModalFooter").show();
+            $("#suggestion_data #suggestion").val('');
+            $("#actor_wrap span.address_list").empty();
+            $("#rc_count").text('0');
+            $("#rc.selected ul").empty();
+            $("#executor").val('');
         	$('#readModal').modal('show');
         });
     }
@@ -389,9 +399,11 @@
     function finish_do_confirm(){
         var send_data=$("#suggestion_data").serializeArray();
         console.log(send_data);
+        $("#send").hide();
         $.post("{:url('tansform_pass')}",send_data,function(data){
             ui_alert(data['msg']);
             console.log(data);
+            $("#send").show();
             $('#readModal').modal('hide');
             refresh_all_table();
         });        
@@ -522,11 +534,18 @@
         ];
         searchParams=function (params) {
             var title =$("#search_condition_form #title").val();
-            var data = {'title':title};
+            var data = {
+                'title':title,
+                'status':$("#task_pass_status").val(),
+            };
             return data;
         };
         var sendTable = new TableInit('sendTable',url,'id',column_list,sendOnClickFunction,searchParams,true);
         sendTable.Init();
+    }
+    function status_change(){
+        $('#sendTable').bootstrapTable('refresh');
+        $('#sendTable').bootstrapTable('selectPage', 1);
     }
     var hide_row_onclick_flag = false;
     function sendOnClickFunction(row){
@@ -629,6 +648,43 @@
     }
     function do_nothing(){
         hide_row_onclick_flag =true;
+    }
+    /****************单独设置地址栏确认************/
+    function address_save() {
+        console.log('save');
+        $("#rc.selected li").each(function(i) {
+            emp_no = $(this).attr('data');
+            name = jQuery.trim($(this).text());
+            name = name.replace(/<.*>/, '');
+            html = conv_inputbox_item(name, emp_no);
+            console.log(html);
+            $("#actor_wrap .address_list").append(html);
+            close_address();
+            auto_set_suggestion();
+        });
+    }
+    function auto_set_suggestion(){
+        console.log('auto_set_suggestion');
+        $("#executor").val("");//清空接受列表中的人员;
+        $("#actor_wrap span.address_list span").each(function() {
+            $("#executor").val($("#executor").val() + $(this).find("b").text() + '|' + $(this).attr("data") + ";");
+        });
+        var executor_list_str = $("#executor").val();
+        executor_list = executor_list_str.split(';');
+        var auto_set_str = '请';
+        for (var i = 0; i < executor_list.length; i++) {
+            if(executor_list[i] != ''){
+                users = executor_list[i].split('|');
+                if(i === executor_list.length-2){
+                    auto_set_str =  auto_set_str +users[0];
+                }else{
+                    auto_set_str =  auto_set_str +users[0]+',';
+                }
+            }
+        }
+        auto_set_str += '阅办';
+        console.log(auto_set_str);
+        $("#suggestion_data #suggestion").val(auto_set_str);
     }
 </script>
 {/block}
