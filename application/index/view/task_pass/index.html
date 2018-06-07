@@ -9,6 +9,18 @@
     <script src="../../public/h_admin/js/plugins/bootstrap-table/extensions/export/bootstrap-table-export.js"></script>
     <script src="../../public/h_admin/js/plugins/bootstrap-table/tableExport.js"></script>
 {/block}
+{block name="private_css"}
+<style type="text/css">
+    .tree_iterm_name{
+        color: rgb(0,114,191);
+        font-size: 16px;
+    }
+    .tree_iterm_suggestion{
+        color: rgb(55,199,251);
+        font-size: 16px;   
+    }
+</style>
+{/block}
 {block name="content"}
 <body class="gray-bg" onload="page_init();">
 	<div class="wrapper wrapper-content  animated fadeInRight">
@@ -22,7 +34,7 @@
 	                    <div class="form-group">             
 	                        <label class="col-sm-2 control-label">公文标题：</label>
 	                         <div class="col-sm-6">
-	                            <input type="text" id="title"  name="title" class="form-control">
+	                            <input type="text" id="title"  name="title" class="form-control" >
 	                        </div>
 	                        <div class="col-sm-3">
 	                            <button type="button"  class="btn btn-primary" onclick="refresh_all_table();"><i class="fa fa-search"></i> 搜索</button>
@@ -403,9 +415,12 @@
         $.post("{:url('tansform_pass')}",send_data,function(data){
             ui_alert(data['msg']);
             console.log(data);
-            $("#send").show();
             $('#readModal').modal('hide');
+            $("#send").show();
             refresh_all_table();
+            $.post("{:url('send_receive_msg_to_mulity_executor')}",{'log_id_list_str':data['data']},function(data){
+                    console.log(data);
+            });
         });        
     }
     function reject_do(){

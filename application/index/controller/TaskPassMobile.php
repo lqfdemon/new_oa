@@ -116,7 +116,7 @@ class TaskPassMobile extends Controller
         $executor_name_list = explode(',', $executors_str);
 
         Log::record($executor_name_list);
-
+        $log_id_list_str = "";
         foreach ($executor_name_list as $key => $executor_name) {
             if(empty($executor_name)){
                 break;
@@ -131,7 +131,8 @@ class TaskPassMobile extends Controller
             $task_pass_log = new TaskPassLog();
             $task_pass_log->save($log_data);
             $task_pass = TaskPassInfo::get($task_pass_log['task_pass_id']);
-            $this->send_receive_msg_to_executor($log_data['receiver_id'],$log_data['sender_name'],$log_data['time'],$task_pass['form_title'],$task_pass['form_id']);
+            $log_id_list_str = $log_id_list_str.$task_pass_log->id.';';
+            Log::record($log_id_list_str);
         }        
         $where_log = ['task_pass_id'=>$task_pass_log['task_pass_id'],'status'=>0];
         $not_finished_task_pass_log=TaskPassLog::where($where_log)->order('id desc')->select()->toArray();
@@ -140,7 +141,24 @@ class TaskPassMobile extends Controller
             $task_pass->status =1;//设置为意见收集完成
             $task_pass->save();
         }
-        $this->success("操作成功");
+        $this->success("操作成功",'',$log_id_list_str,3);
+    }
+    public function send_receive_msg_to_mulity_executor($log_id_list_str){
+        $log_id_list = explode(';', $log_id_list_str);
+        foreach ($log_id_list as $key => $log_id) {
+            if(!empty($log_id)){
+                $task_pass_log = Db::table('task_pass_log')
+                        ->where('id',$log_id)
+                        ->find();
+                $task_pass = Db::table('task_pass_info')
+                        ->where('id',$task_pass_log['task_pass_id'])
+                        ->find();
+                if(empty($task_pass_log)||empty($task_pass)){
+                    break;
+                }
+                $this->send_receive_msg_to_executor($task_pass_log['receiver_id'],$task_pass_log['sender_id'],$task_pass_log['sender_name'],$task_pass['create_time'],$task_pass['form_title'],$task_pass['form_id']);
+            }
+        }
     }
     public function send_receive_msg_to_executor($executor_id,$sender_name,$send_time,$title,$index){
         $user_wx_info_list = Db::table('user_wx_info')
@@ -163,9 +181,9 @@ class TaskPassMobile extends Controller
                 )
             );  
             $template_data = json_encode($jsonText);
-            Log::record($template_data);
             $weixin = new \class_weixin();
             $weixin->send_template_message($template_data);
         }      
+        $this->success('模板消息发送完成');
     }
 }

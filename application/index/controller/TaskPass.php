@@ -56,6 +56,8 @@ class TaskPass extends CommonController
         $log_data['task_pass_id'] = $task_pass->id;
         $log_data['time'] = date("Y-m-d H:i:s");
         $executor_list = explode(';', $data['executor']);
+
+        $log_id_list_str = "";
         foreach ($executor_list as $key => $executor) {
         	if(empty($executor)){
         		break;
@@ -68,10 +70,28 @@ class TaskPass extends CommonController
             $log_data['is_first_step'] = 1;
         	$task_pass_log = new TaskPassLog();
         	$task_pass_log->save($log_data);
-            $this->send_receive_msg_to_executor($log_data['receiver_id'],$data['creater_name'],$data['create_time'],$data['form_title'],$data['form_id']);
+            $log_id_list_str = $log_id_list_str.$task_pass_log->id.';';
+            Log::record($log_id_list_str);
         }
-        $this->success("操作成功");
+        $this->success("操作成功",'',$log_id_list_str,3);
 	}
+    public function send_receive_msg_to_mulity_executor($log_id_list_str){
+        $log_id_list = explode(';', $log_id_list_str);
+        foreach ($log_id_list as $key => $log_id) {
+            if(!empty($log_id)){
+                $task_pass_log = Db::table('task_pass_log')
+                        ->where('id',$log_id)
+                        ->find();
+                $task_pass = Db::table('task_pass_info')
+                        ->where('id',$task_pass_log['task_pass_id'])
+                        ->find();
+                if(empty($task_pass_log)||empty($task_pass)){
+                    break;
+                }
+                $this->send_receive_msg_to_executor($task_pass_log['receiver_id'],$task_pass_log['sender_id'],$task_pass_log['sender_name'],$task_pass['create_time'],$task_pass['form_title'],$task_pass['form_id']);
+            }
+        }
+    }
     public function send_receive_msg_to_executor($executor_id,$sender_name,$send_time,$title,$index){
         $user_wx_info_list = Db::table('user_wx_info')
                             ->where(['user_id'=>$executor_id])
@@ -93,22 +113,15 @@ class TaskPass extends CommonController
                 )
             );  
             $template_data = json_encode($jsonText);
-            Log::record($template_data);
             $weixin = new \class_weixin();
             $weixin->send_template_message($template_data);
         }      
+        $this->success('模板消息发送完成');
     }
     public function delete_task_info($task_pass_id){
-        $num=Db::table('task_pass_log')
-                ->where(['task_pass_id'=>$task_pass_id,'status'=>0])
-                ->count('id');
-        if($num == 0){
-            $this->error("已被处理的公文流转无法撤回！");
-        }else{
-            Db::table('task_pass_info')->where('id',$task_pass_id)->delete();
-            Db::table('task_pass_log')->where('task_pass_id',$task_pass_id)->delete();
-            $this->success("撤回成功");
-        }
+        Db::table('task_pass_info')->where('id',$task_pass_id)->delete();
+        Db::table('task_pass_log')->where('task_pass_id',$task_pass_id)->delete();
+        $this->success("撤回成功");
     }
 	public function get_send_pass_list($title,$status){
 		$where_task['creater_id'] = Session::get('id');
@@ -279,6 +292,7 @@ class TaskPass extends CommonController
         $log_data['task_pass_id'] = $data['task_pass_id'];
         $log_data['time'] = date("Y-m-d H:i:s");
         $executor_list = explode(';', $data['executor']);
+        $log_id_list_str = "";
         foreach ($executor_list as $key => $executor) {
         	if(empty($executor)){
         		break;
@@ -291,7 +305,8 @@ class TaskPass extends CommonController
         	$task_pass_log = new TaskPassLog();
         	$task_pass_log->save($log_data);
             $task_pass = TaskPassInfo::get($data['task_pass_id']);
-            $this->send_receive_msg_to_executor($log_data['receiver_id'],$log_data['sender_name'],$log_data['time'],$task_pass['form_title'],$task_pass['form_id']);
+            $log_id_list_str = $log_id_list_str.$task_pass_log->id.';';
+            Log::record($log_id_list_str);
         } 
         $where_log = ['task_pass_id'=>$data['task_pass_id'],'status'=>0];
         $not_finished_task_pass_log=TaskPassLog::where($where_log)->order('id desc')->select()->toArray();
@@ -301,7 +316,7 @@ class TaskPass extends CommonController
         	$task_pass->save();
         }
 
-        $this->success("操作成功");   	
+        $this->success("操作成功",'',$log_id_list_str,3); 	
     }
     public function reject_pass(){
         $data = $_POST;
@@ -338,7 +353,7 @@ class TaskPass extends CommonController
 		$log_status_list = [];
 		$status_data=[
 			'id'=>0,
-			'text'=>"发起人：".$task_pass['creater_name']."&nbsp;&nbsp;&nbsp;&nbsp;拟办意见：".$task_pass['suggestion'],
+			'text'=>"发起人 <span class='tree_iterm_name'>：".$task_pass['creater_name']."</span>&nbsp;&nbsp;&nbsp;&nbsp;拟办意见：<span class='tree_iterm_suggestion'>".$task_pass['suggestion'].'</span>',
 			'parent'=>"#",
 			'icon'=>'fa fa-share-square-o',
 			'state'=>['opened'=> true],
@@ -351,16 +366,16 @@ class TaskPass extends CommonController
 			$icon ="";
 			$suggestion = "";
 			if($task_pass_log['status'] == 0){
-				$text = "(待处理) ".$task_pass_log['receiver_name'].'&nbsp;&nbsp;&nbsp;&nbsp;'."<a  onclick='send_msg(".$task_pass_log['receiver_id'].");'>";
+				$text = "(待处理) <span class='tree_iterm_name'>".$task_pass_log['receiver_name'].'</span>&nbsp;&nbsp;&nbsp;&nbsp;'."<a  onclick='send_msg(".$task_pass_log['receiver_id'].");'>";
                 if($type == 'send'){
                     $text .= "<i class='fa fa-envelope'></i>短信提醒</a>";
                 }
 				$icon = "fa fa-hourglass-o";
 			}elseif ($task_pass_log['status'] == 1) {
-				$text = "(已处理) ".$task_pass_log['receiver_name']."&nbsp;&nbsp;&nbsp;&nbsp;意见：".$task_pass_log['suggestion'].'&nbsp;&nbsp;&nbsp;&nbsp;'.$task_pass_log['finished_time'];
+				$text = "(已处理) <span class='tree_iterm_name'>".$task_pass_log['receiver_name']."</span>&nbsp;&nbsp;&nbsp;&nbsp;意见：<span class='tree_iterm_suggestion'>".$task_pass_log['suggestion'].'</span>&nbsp;&nbsp;&nbsp;&nbsp;'.$task_pass_log['finished_time'];
 				$icon = "fa fa-check-square-o";
 			}else {
-				$text = "(已拒绝) ".$task_pass_log['receiver_name']."&nbsp;&nbsp;&nbsp;&nbsp;意见：".$task_pass_log['suggestion'].'&nbsp;&nbsp;&nbsp;&nbsp;'.$task_pass_log['finished_time'];
+				$text = "(已拒绝) <span class='tree_iterm_name'>".$task_pass_log['receiver_name']."</span>&nbsp;&nbsp;&nbsp;&nbsp;意见：<span class='tree_iterm_suggestion'>".$task_pass_log['suggestion'].'</span>&nbsp;&nbsp;&nbsp;&nbsp;'.$task_pass_log['finished_time'];
 				$icon = "fa fa-close";
 			}
 			$status_data=[

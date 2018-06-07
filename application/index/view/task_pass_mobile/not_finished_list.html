@@ -237,6 +237,9 @@
             $.hideLoading();
             $.alert(data['msg']);
             $.closePopup();
+            $.post("{:url('send_receive_msg_to_mulity_executor')}",{'log_id_list_str':data['data']},function(data){
+                    console.log(data);
+            });
             setTimeout("refresh_page()",2500);
         });
     }

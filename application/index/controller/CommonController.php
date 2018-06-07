@@ -51,7 +51,7 @@ class CommonController extends Controller
         $file = request()->file('file');
         Log::record($file);
         $max_size = 200*1024*1024;
-        $ext_allow = 'ppt,pptx,xls,xlsx,jpg,gif,png,jpeg,zip,rar,tar,gz,7z,doc,docx,txt,pdf';
+        $ext_allow = 'ppt,pptx,xls,xlsx,jpg,gif,png,jpeg,zip,rar,tar,gz,7z,doc,docx,txt,pdf,ceb';
         // 移动到框架应用根目录/public/uploads/ 目录下
         $cur_date = date("Y-m");
         Log::record($cur_date);

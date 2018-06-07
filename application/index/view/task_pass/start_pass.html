@@ -195,7 +195,13 @@
 		var send_data=$("#form_data").serializeArray();
 		$.post("{:url('save_task_pass')}",send_data,function(data){
 			ui_alert(data['msg']);
-			if(data['code'] !== 1){
+			console.log(data);
+			if(data['code'] === 1){
+				//发送模板消息
+				$.post("{:url('send_receive_msg_to_mulity_executor')}",{'log_id_list_str':data['data']},function(data){
+					console.log(data);
+				});
+			}else{
 				$("#send").show();
 			}
 		});
