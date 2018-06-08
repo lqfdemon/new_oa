@@ -193,7 +193,12 @@
 		$("#send").hide();
 		console.log(send_data);
 		$.post("{:url('save_task')}",send_data,function(data){
-			if(!data['code']){
+			if(data['code']){
+				//发送模板消息
+				$.post("{:url('send_receive_msg_to_mulity_executor')}",{'log_id_list_str':data['data']},function(data){
+					console.log(data);
+				});
+			}else{
 				$("#send").show();
 			}
 			console.log(data);

@@ -144,6 +144,7 @@ class TaskPassMobile extends Controller
         $this->success("操作成功",'',$log_id_list_str,3);
     }
     public function send_receive_msg_to_mulity_executor($log_id_list_str){
+        set_time_limit(300);
         $log_id_list = explode(';', $log_id_list_str);
         foreach ($log_id_list as $key => $log_id) {
             if(!empty($log_id)){

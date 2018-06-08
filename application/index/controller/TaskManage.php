@@ -219,6 +219,8 @@ class TaskManage extends CommonController
         $task->save($data);
         $executor_list = explode(';', $data['executor']);
         Log::record($executor_list);
+
+        $log_id_list_str = "";
         foreach ($executor_list as $key => $executor) {
             if(!empty($executor)){
                 $executor_info = explode('|', $executor);
@@ -234,12 +236,30 @@ class TaskManage extends CommonController
                 $task_log = new TaskLog();
                 $task_log->save($task_log_data);
                 $executor_id=$executor_info[1];
-                $this->send_receive_msg_to_executor($executor_id,$task->user_name,$task->name);
+
+                $log_id_list_str = $log_id_list_str.$task_log->id.';';
             }
         }
-        $this->success("发送成功");
+        $this->success("发送成功",'',$log_id_list_str,3);
     }
-
+    public function send_receive_msg_to_mulity_executor($log_id_list_str){
+        set_time_limit(300);
+        $log_id_list = explode(';', $log_id_list_str);
+        foreach ($log_id_list as $key => $log_id) {
+            if(!empty($log_id)){
+                $task_log = Db::table('task_log')
+                        ->where('id',$log_id)
+                        ->find();
+                $task = Db::table('task')
+                        ->where('id',$task_log['task_id'])
+                        ->find();
+                if(empty($task_log)||empty($task)){
+                    break;
+                }
+                $this->send_receive_msg_to_executor($task_log['executor'],$task['user_name'],$task['name']);
+            }
+        }
+    }
     public function send_receive_msg_to_executor($executor_id,$sender_name,$title){
         $user_wx_info_list = Db::table('user_wx_info')
                             ->where(['user_id'=>$executor_id])
