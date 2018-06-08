@@ -156,7 +156,7 @@ class TaskPassMobile extends Controller
                 if(empty($task_pass_log)||empty($task_pass)){
                     break;
                 }
-                $this->send_receive_msg_to_executor($task_pass_log['receiver_id'],$task_pass_log['sender_id'],$task_pass_log['sender_name'],$task_pass['create_time'],$task_pass['form_title'],$task_pass['form_id']);
+                $this->send_receive_msg_to_executor($task_pass_log['receiver_id'],$task_pass_log['sender_name'],$task_pass['create_time'],$task_pass['form_title'],$task_pass['form_id']);
             }
         }
     }
