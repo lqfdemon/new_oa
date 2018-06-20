@@ -270,7 +270,7 @@ class TaskManage extends CommonController
             $executor_open_id = $user_wx_info['open_id'];
             $jsonText = array(
                 'touser'=>$executor_open_id, 'template_id'=>$template_id ,
-                'url'=>"http://www.xcwjwx.com/oa/index/task_mobile/task_list_get_auth",
+                'url'=>"http://www.yeah-use.com/oa/index/task_mobile/task_list_get_auth",
                 'data'=>array(
                     'first'=>array('value'=>$user_wx_info['name']."您好，您收到一条新公文",'color'=>"#173177",),                               
                     'keyword1'=>array('value'=>$title,'color'=>"#173177",),

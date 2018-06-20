@@ -103,7 +103,7 @@ class TaskPass extends CommonController
             $executor_open_id = $user_wx_info['open_id'];
             $jsonText = array(
                 'touser'=>$executor_open_id, 'template_id'=>$template_id ,
-                'url'=>"http://www.xcwjwx.com/oa/index/task_pass_mobile/get_auth",
+                'url'=>"http://www.yeah-use.com/oa/index/task_pass_mobile/get_auth",
                 'data'=>array(
                     'first'=>array('value'=>$user_wx_info['name']."您好，您有一条公文流转待处理",'color'=>"#173177",),                               
                     'keyword1'=>array('value'=>$sender_name,'color'=>"#173177",),
