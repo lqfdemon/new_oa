@@ -75,11 +75,26 @@ class CommonController extends Controller
             ];
             $file_modal = new File();
             $file_modal->save($data);
+            Log::record('ext='.$data['ext']);
+            if($data['ext'] == 'doc'||$data['ext'] == 'docx'){
+                $this->create_preview($data['savename'],$data['savepath']);
+            }
             return $file_modal->id;
         }else{
             // 上传失败获取错误信息
             Log::record($info->getError());
         }
+    }
+    public function create_preview($savename,$savepath){
+        $doc_file = LOCAL_FILE_PATH.$savepath.$savename;
+        $output_dir = LOCAL_FILE_PATH.$savepath;
+        $name_no_ext = explode('.', $savename);
+        $pdf_file = $name_no_ext[0].".pdf";
+        $output_file = $output_dir . $pdf_file;
+        $doc_file = "file:///" . $doc_file;
+        $output_file = "file:///" . $output_file;
+        Log::record($doc_file . "  " . $output_file);
+        word2pdf($doc_file, $output_file);
     }
     public function download($file_id){     
         $File = new File();
@@ -211,4 +226,22 @@ class CommonController extends Controller
         $res = $this->request_post($url,$param);
         return $res;
     }
+}
+
+
+function MakePropertyValue($name, $value, $osm) {
+    $oStruct = $osm->Bridge_GetStruct("com.sun.star.beans.PropertyValue");
+    $oStruct->Name = $name;
+    $oStruct->Value = $value;
+    return $oStruct;
+}
+ 
+function word2pdf($doc_url, $output_url) {
+    $osm = new \COM("com.sun.star.ServiceManager") or die("Please be sure that OpenOffice.org is installed.n");
+    $args = array(MakePropertyValue("Hidden", true, $osm));
+    $oDesktop = $osm->createInstance("com.sun.star.frame.Desktop");
+    $oWriterDoc = $oDesktop->loadComponentFromURL($doc_url, "_blank", 0, $args);
+    $export_args = array(MakePropertyValue("FilterName", "writer_pdf_Export", $osm));
+    $oWriterDoc->storeToURL($output_url, $export_args);
+    $oWriterDoc->close(true);
 }

@@ -131,7 +131,11 @@ class TaskPass extends CommonController
             $where_task['form_title'] = array('like',"%$title%");                
         }
         if($status != -1){
-            $where_task['status'] = $status;                
+            if($status == -2){
+                $where_task['status'] = ['in',[0,1]];   
+            }else{
+                $where_task['status'] = $status;   
+            }             
         }
 		$task_list = TaskPassInfo::where($where_task)->order('id desc')->select()->toArray();		
     	foreach ($task_list as $key => $task) {
@@ -206,7 +210,7 @@ class TaskPass extends CommonController
         if(empty($task_list)){
             return [];
         }
-        $task_log_list = TaskPassLog::where($where_log)->select()->toArray();
+        $task_log_list = TaskPassLog::where($where_log)->order('id desc')->select()->toArray();
         if(empty($task_log_list)){
             return [];
         }

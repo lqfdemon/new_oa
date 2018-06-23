@@ -103,7 +103,7 @@
             for (var i = 0; i < file_list.length; i++) {
                 file_list[i]
                 var file_html= [
-                        '<a class="weui-cell" href="'+file_list[i]['file_url']+'">',
+                        '<a class="weui-cell" onclick="file_pre_view('+file_list[i]['id']+')">',
                             '<div class="weui-cell__bd">',
                                 '<p>附件:'+file_list[i]['file_name']+'</p>',
                             '</div>',
@@ -113,6 +113,25 @@
             }
             $("#file_list").html(html);
             $("#half").popup();
+        });
+    }
+     function file_pre_view(id){
+        console.log(id);
+        $.get("{:url('get_file_info_by_id')}",{'id':id},function(data){
+            console.log(data);
+            var host = window.location.host;
+            var url = 'http://'+host+'/pdf_js/web/viewer.html?file=../../oa/uploads/download/';
+            if(data.ext == 'doc'||data.ext == 'docx'){
+                var str = data.savename.split('.');
+                var file_name = str[0]+'.pdf';
+                url +=data.savepath+file_name;
+                window.location.href = url;
+            }else if(data.ext == 'pdf'){
+                url +=data.savepath+data.savename;
+                window.location.href = url;
+            }else{
+                $.alert('该类型文件不支持预览，请在PC端查看');
+            }
         });
     }
     function refresh_page(){

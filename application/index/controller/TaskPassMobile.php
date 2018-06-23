@@ -50,7 +50,11 @@ class TaskPassMobile extends Controller
         $view->assign('task_list',$task_log_list);
         return $view->fetch('not_finished_list'); 
     }
-    function get_file_list($task_pass_id){
+    public function get_file_info_by_id($id)
+    {
+        return Db::table('file')->where('id',$id)->find();
+    }
+    public function get_file_list($task_pass_id){
         $task = Db::table('task_pass_info')
             ->where('id',$task_pass_id)
             ->find();
@@ -63,7 +67,11 @@ class TaskPassMobile extends Controller
                 $file = File::get($file_id);
                 $file_url= url('download','file_id='.$file_id);
                 if(!empty($file)){
-                    array_push($task['file_list'], ['file_name'=>$file->name,'file_url'=>$file_url]);
+                    array_push($task['file_list'], [
+                        'file_name'=>$file->name,
+                        'file_url'=>$file_url,
+                        'id'=>$file->id,
+                    ]);
                 }
             }
         }

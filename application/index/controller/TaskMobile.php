@@ -51,7 +51,11 @@ class TaskMobile extends Controller
         $view->assign('task_list',$task_list);
         return $view->fetch('task_list_mobile'); 
     }
-    function get_file_list($task_id){
+    public function get_file_info_by_id($id)
+    {
+        return Db::table('file')->where('id',$id)->find();
+    }
+    public function get_file_list($task_id){
         $task = Db::table('task')
             ->where('id',$task_id)
             ->find();
@@ -64,7 +68,11 @@ class TaskMobile extends Controller
                 $file = File::get($file_id);
                 $file_url= url('download','file_id='.$file_id);
                 if(!empty($file)){
-                    array_push($task['file_list'], ['file_name'=>$file->name,'file_url'=>$file_url]);
+                    array_push($task['file_list'], [
+                        'file_name'=>$file->name,
+                        'file_url'=>$file_url,
+                        'id'=>$file->id,
+                    ]);
                 }
             }
         }
