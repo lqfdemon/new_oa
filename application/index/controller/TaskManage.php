@@ -219,8 +219,8 @@ class TaskManage extends CommonController
         $task->save($data);
         $executor_list = explode(';', $data['executor']);
         Log::record($executor_list);
-
         $log_id_list_str = "";
+        $executor_name_list="";
         foreach ($executor_list as $key => $executor) {
             if(!empty($executor)){
                 $executor_info = explode('|', $executor);
@@ -236,10 +236,11 @@ class TaskManage extends CommonController
                 $task_log = new TaskLog();
                 $task_log->save($task_log_data);
                 $executor_id=$executor_info[1];
-
+                $executor_name_list .= $executor_info[0]."、";
                 $log_id_list_str = $log_id_list_str.$task_log->id.';';
             }
         }
+         $this->send_message_to_qq($data['user_name'],$executor_name_list,$data['name']);
         $this->success("发送成功",'',$log_id_list_str,3);
     }
     public function send_receive_msg_to_mulity_executor($log_id_list_str){
@@ -257,9 +258,43 @@ class TaskManage extends CommonController
                     break;
                 }
                 $this->send_receive_msg_to_executor($task_log['executor'],$task['user_name'],$task['name']);
+
             }
         }
+        
     }
+    public function send_message_to_qq($user_name,$executor_name_list,$title){
+        $executor_name=rtrim($executor_name_list, "、");
+        $message= "请".$executor_name."在办公网签收【".$user_name."】发送的“".$title."”文件！";
+        $message=urlencode($message);
+        //$url = "http://localhost:8080/?key=Ud028311&a=<%26%26>SendClusterMessage<%26>676173297<%26>".$message;  
+        if (strstr($user_name,"办公室")) {
+           $url = "http://localhost:8080/?key=Ud028311&a=<%26%26>SendClusterMessage<%26>250645311<%26>".$message;
+        }elseif (strstr($user_name,"医政医管科")) {
+           $url = "http://localhost:8080/?key=Ud028311&a=<%26%26>SendClusterMessage<%26>121768437<%26>".$message;
+        }elseif (strstr($user_name,"医改办")) {
+           $url = "http://localhost:8080/?key=Ud028311&a=<%26%26>SendClusterMessage<%26>134466183<%26>".$message;
+        }elseif (strstr($user_name,"政策法规科")) {
+           $url = "http://localhost:8080/?key=Ud028311&a=<%26%26>SendClusterMessage<%26>543720967<%26>".$message;
+        }elseif (strstr($user_name,"中医科")) {
+           $url = "http://localhost:8080/?key=Ud028311&a=<%26%26>SendClusterMessage<%26>618479290<%26>".$message;
+        }elseif (strstr($user_name,"政工科")) {
+           $url1 = "http://localhost:8080/?key=Ud028311&a=<%26%26>SendClusterMessage<%26>193953749<%26>".$message;
+            $this->http_request($url1);
+           $url = "http://localhost:8080/?key=Ud028311&a=<%26%26>SendClusterMessage<%26>556956836<%26>".$message; 
+        }elseif (strstr($user_name,"公共卫生科")) {
+           $url = "http://localhost:8080/?key=Ud028311&a=<%26%26>SendClusterMessage<%26>105564432<%26>".$message;
+        }elseif (strstr($user_name,"财务内审科")) {
+           $url = "http://localhost:8080/?key=Ud028311&a=<%26%26>SendClusterMessage<%26>57099324<%26>".$message;
+        }
+        else {
+           $url = "http://localhost:8080/?key=Ud028311&a=<%26%26>SendClusterMessage<%26>676173297<%26>".$message;
+        }
+        
+        $this->http_request($url);
+
+
+    }  
     public function send_receive_msg_to_executor($executor_id,$sender_name,$title){
         $user_wx_info_list = Db::table('user_wx_info')
                             ->where(['user_id'=>$executor_id])
