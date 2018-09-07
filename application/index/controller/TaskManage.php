@@ -339,5 +339,22 @@ class TaskManage extends CommonController
             $this->error("超过30分钟无法撤回!");
         }
     }
-    
+    public function task_count(){
+        $view=new View();
+        return $view->fetch('task_count');      
+    }
+    public function get_task_by_dept($start_time,$end_time){
+        if(empty($start_time)||empty($end_time)){
+            return;
+        }
+        $user_id_list=Db::table('user')->where(['dept_id'=>['in',[5,67]]])->column('id');
+        $res = Db::table('task_log')
+                ->alias(['task_log'=>'log'])
+                ->join('task','task.id= log.task_id')
+                ->field('log.executor_name,task.user_name,task.name')
+                ->where(['log.executor'=>['in',$user_id_list]])
+                ->where(['log.finish_time'=>['BETWEEN',[$start_time,$end_time]]])
+                ->select();
+        return $res;
+    }
 }

@@ -39,12 +39,16 @@ class TaskMobile extends Controller
                 ->where('executor',$user_wx_info['user_id'])
                 ->where('status',0)
                 ->column('task_id');
-        $task_list = Db::table('task')
+        if(empty($task_id_list)){
+            $task_list = [];
+        }else{
+            $task_list = Db::table('task')
                 ->where(['id'=>['in',$task_id_list]])
                 ->order('id','desc')
                 ->select();
-        foreach ($task_list as $key => $task) {
-            $task_list[$key]['send_time']=date("Y-m-d H:i:s",$task['create_time']);
+            foreach ($task_list as $key => $task) {
+                $task_list[$key]['send_time']=date("Y-m-d H:i:s",$task['create_time']);
+            }
         }
         Log::record($task_list);
         $view->assign('user_id',$user_wx_info['user_id']);

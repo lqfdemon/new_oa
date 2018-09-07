@@ -189,7 +189,7 @@ class TaskPass extends CommonController
             $where_log['status'] = 0;
             $where_log['receiver_id'] = $this->get_user_id();
         }else if($type == 'finished'){
-            $where_log['status'] = 1;
+            $where_log['status'] = ['IN',[1,2]];
             $where_log['receiver_id'] = $this->get_user_id();
         }else{
             $this->error("公文类型错误");
