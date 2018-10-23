@@ -1,0 +1,77 @@
+{extend name="common_page" /}
+{block name="private_file"}
+    <script src="../../public/h_admin/js/plugins/bootstrap-table/extensions/export/bootstrap-table-export.js"></script>
+    <script src="../../public/h_admin/js/plugins/bootstrap-table/tableExport.js"></script>
+{/block}
+{block name="content"}
+<body class="gray-bg" onload="page_init();">
+	<div class="wrapper wrapper-content  animated fadeInRight">
+		<div class="ibox">
+			<div class="ibox-content">
+				<h4>公文收发统计</h4>
+			</div>
+            <div class="ibox-content">
+                <form class="form-horizontal m-t" id="condition_form">
+                    <div class="form-group">
+                        <label class="col-sm-1 control-label">开始时间：</label>
+                        <div class="col-sm-3">
+                            <input type="text" id="start_time"  name="start_time" class="form-control">
+                        </div>
+                        <label class="col-sm-1 control-label">结束时间：</label>
+                        <div class="col-sm-3">
+                            <input type="text" id="end_time"  name="end_time" class="form-control">
+                        </div>
+                        <div class="col-sm-2">
+                            <button type="button"  class="btn btn-primary" onclick="refresh_meeting_table();"><i class="fa fa-search"></i> 搜索</button>
+                        </div>
+                    </div>
+                </form>
+                <div class="row" style="padding: 20px">
+                	<table id="meeting_tb"></table>
+                </div>
+            </div>
+        </div>
+	</div>
+</body>
+<script type="text/javascript">
+    function page_init(){
+        laydate({'elem':'#start_time','istime':true,format: 'YYYY/MM/DD hh:mm:ss'});
+        laydate({'elem':'#end_time','istime':true,format: 'YYYY/MM/DD hh:mm:ss'});
+        init_meeting_table();
+    }
+    function init_meeting_table(){
+        var url="{:url('get_task_by_dept')}";
+        //未签收
+        var column_list=
+        [
+            {
+                field: 'executor_name',
+                title: '收文单位',
+            },{
+                field: 'user_name',
+                title: '发文单位',
+            },{
+                field: 'name',
+                title: '公文标题',
+            }
+        ];
+        searchParams=function (params) {
+            var start_time =$("#condition_form #start_time").val();
+            var end_time =$("#condition_form #end_time").val();
+            var data = {
+                'start_time':start_time,
+                'end_time':end_time
+            };
+            return data;
+        };
+        var meeting_table = new TableInit('meeting_tb',url,'id',column_list,OnClickFunction,searchParams,true);
+        meeting_table.Init();
+    }
+    function refresh_meeting_table(table_id){
+        $('#meeting_tb').bootstrapTable('refresh');
+        $('#meeting_tb').bootstrapTable('selectPage', 1);
+    }
+    function OnClickFunction(row){    
+    }
+</script>
+{/block}
