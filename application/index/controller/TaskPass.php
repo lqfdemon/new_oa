@@ -371,7 +371,7 @@ class TaskPass extends CommonController
 			$icon ="";
 			$suggestion = "";
 			if($task_pass_log['status'] == 0){
-				$text = "(待处理) <span class='tree_iterm_name'>".$task_pass_log['receiver_name'].'</span>&nbsp;&nbsp;&nbsp;&nbsp;'."<a  onclick='send_msg(".$task_pass_log['receiver_id'].");'>";
+				$text = "(待处理) <span class='tree_iterm_name'>".$task_pass_log['receiver_name'].'</span>&nbsp;&nbsp;&nbsp;&nbsp;'."<a  onclick='send_msg(".$task_pass_log['receiver_id'].",".$task_pass_id.");'>";
                 if($type == 'send'){
                     $text .= "<i class='fa fa-envelope'></i>短信提醒</a>";
                 }

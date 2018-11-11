@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<script type="text/javascript" src="../../public/js-xlsx/xlsx.full.min.js"></script>
+
+<body>
+    <input type="file" onchange="importf(this)" />
+    <div id="demo"></div>
+
+    <button onclick="downloadExl(json)">导出</button>
+    <!--
+            以下a标签不需要内容
+        -->
+    <a href="" download="这里是下载的文件名.xlsx" id="hf"></a>
+</body>
+<script>
+
+    /*
+    FileReader共有4种读取方法：
+    1.readAsArrayBuffer(file)：将文件读取为ArrayBuffer。
+    2.readAsBinaryString(file)：将文件读取为二进制字符串
+    3.readAsDataURL(file)：将文件读取为Data URL
+    4.readAsText(file, [encoding])：将文件读取为文本，encoding缺省值为'UTF-8'
+    */
+    var wb;//读取完成的数据
+    var rABS = false; //是否将文件读取为二进制字符串
+
+    function importf(obj) {//导入
+        if (!obj.files) {
+            return;
+        }
+        var f = obj.files[0];
+        var reader = new FileReader();
+        reader.onload = function (e) {
+            var data = e.target.result;
+            if (rABS) {
+                wb = XLSX.read(btoa(fixdata(data)), {//手动转化
+                    type: 'base64'
+                });
+            } else {
+                wb = XLSX.read(data, {
+                    type: 'binary'
+                });
+            }
+            //wb.SheetNames[0]是获取Sheets中第一个Sheet的名字
+            //wb.Sheets[Sheet名]获取第一个Sheet的数据
+            var dateDataTemp = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[1]]);
+            for (let i = 0; i < dateDataTemp.length - 1; i++) {
+                for (let j = 0; j < 10; j++) {
+                    var key = "班"+(j+1);
+                    dateDataTemp[i][key] = '';
+                } 
+            }
+            var numDataTemp = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[2]]);
+            var lastNum = 120;
+            //while(lastNum != 0){
+                lastNum = Create(dateDataTemp,numDataTemp)
+            //}
+            console.log("find~~~~~~~~~~~~");
+            console.log(dateDataTemp)
+            json = dateDataTemp;
+        };
+        if (rABS) {
+            reader.readAsArrayBuffer(f);
+        } else {
+            reader.readAsBinaryString(f);
+        }
+    }
+
+    function Create(dateDataTemp,numDataTemp){
+        var res = [];
+        var dateData = [];
+        var numData = [];
+        var lastNum = 0;
+        for (let i = 0; i < dateDataTemp.length - 1; i++) {
+            dateData.push(dateDataTemp[i])      
+        }
+        for (let i = 0; i < numDataTemp.length - 3; i++) {
+            numData.push(numDataTemp[i])
+        }
+
+        lastNum = CreateDutyList(dateData,numData);
+        return lastNum;
+    }
+
+    function CreateDutyList(dateData,numData){
+        var dayNum = 365
+        var leaders = ["何宇生","刘强","牟勇","李力","邱佑红","周源涛","曾礼华","曾艳","高晋","李建国","黄宗梅","何坚","童槐"];
+        
+        for (let i = 0; i < dayNum ;i++) {
+            console.log("@@@"+dayNum)
+            var dateValue = dateData[i]['天数'];
+            var enablePersons = [];
+            var duty = [];
+
+            enablePersons = CheckEnablePerson(numData,dateValue,leaders);
+            enableLeaders = CheckEnableLeader(numData,dateValue,leaders);
+            console.log(enablePersons)
+            console.log(enableLeaders)
+            
+            duty = CreateOneDayDuty(enablePersons,enableLeaders);
+            console.log(duty);
+            //写入值班表
+            WriteOneDayDuty(duty,dateData,i);
+            SubPersonNUm(duty,numData,dateValue)
+            
+        }
+        console.log(dateData);
+        return enablePersons.length;
+    }
+    function SubPersonNUm(duty,numData,value){
+        for (let i = 0; i < numData.length; i++) {
+            for (let j = 0; j < duty.length; j++) {
+                if(duty[j] == numData[i]["姓名"]){
+                    var days = parseInt(numData[i]["天数"])
+                    numData[i]["天数"] = days - value;
+                }
+            }
+        }
+        console.log(numData);
+    }
+    function WriteOneDayDuty(duty,dateData,index){
+        for (let i = 0; i < duty.length; i++) {
+            var key = "班"+(i+1);
+            console.log(dateData[index][key])
+            dateData[index][key] = duty[i];
+            console.log(duty[i]);
+        }
+        console.log(duty);
+    }
+
+    function CheckEnablePerson(numData,dateValue,leaders){
+        var temp =[];
+        for (let i = 0; i < numData.length; i++) {
+            if(numData[i]['天数'] >= dateValue){
+                temp.push(numData[i]['姓名'])
+            }
+        }
+        return temp;
+    }
+
+    function CheckEnableLeader(numData,dateValue,leaders){
+        var temp =[];
+        for (let i = 0; i < numData.length; i++) {
+            if(numData[i]['天数'] >= dateValue){
+                if(leaders.indexOf(numData[i]['姓名']) != -1){
+                    temp.push(numData[i]['姓名'])
+                }
+            }
+        }
+        return temp;
+    }    
+
+
+    function CreateOneDayDuty(enablePersons,enableLeaders){
+        const OneDayNum = 9;
+        var checkFlag = false;
+        var duty= [];
+        var createTimes = 0 ;//计数器 防止卡死
+
+        while(!checkFlag){
+
+            if(createTimes > 10000 ){
+                return [];
+            }
+            var tempPersons = [];
+            var tempLeaders = [];
+
+            for (let i = 0; i < enablePersons.length; i++) {
+                tempPersons.push(enablePersons[i]);            
+            }
+
+            for (let i = 0; i < enableLeaders.length; i++) {
+                tempLeaders.push(enableLeaders[i]);            
+            }
+
+            duty= [];
+            //先选一领导
+            if(tempLeaders.length >0){
+                var max = tempLeaders.length -1;
+                var index = GetRandom(0,max);  
+                duty.push(tempLeaders[index]);
+                tempLeaders.splice(index, 1); 
+            }else{
+                var max = tempPersons.length -1;
+                console.log("max="+max)
+                var index = GetRandom(0,max);  
+                duty.push(tempPersons[index]);
+                tempPersons.splice(index, 1);          
+            }
+            
+            if(tempPersons.length <=8 ){
+                for (let i = 0; i < tempPersons.length; i++) {
+                    duty.push(tempPersons[i]);
+                }
+            }
+            else{
+                for (let i = 0; i < OneDayNum-1; i++) {
+                    var max = tempPersons.length -1;
+                    console.log("max="+max)
+                    var index = GetRandom(0,max);  
+                    duty.push(tempPersons[index]);
+                    tempPersons.splice(index, 1); 
+                }
+            }
+
+            createTimes += 1;
+            checkFlag = check(duty)
+        }
+        console.log("CreateOne finished");
+        return duty;
+    }
+
+    function check(duty){
+        if( isRepeat(duty) ){
+            console.log("成员重复")
+            console.log(duty)
+            return false;
+        }
+        return true;
+    }
+    // 验证重复元素，有重复返回true；否则返回false
+    function isRepeat(arr) {
+        var hash = {};
+        for(var i in arr) {
+            if(hash[arr[i]]) {
+                return true;
+            }
+            // 不存在该元素，则赋值为true，可以赋任意值，相应的修改if判断条件即可
+            hash[arr[i]] = true;
+        }
+        return false;
+    }
+
+    function GetRandom(n, m){
+        var random = Math.floor(Math.random()*(m-n+1)+n);
+        return random;
+    }
+
+
+
+    var json 
+    var tmpDown; //导出的二进制对象
+    function downloadExl(json, type) {
+        var tmpdata = json[0];
+        json.unshift({});
+        var keyMap = []; //获取keys
+        //keyMap =Object.keys(json[0]);
+        for (var k in tmpdata) {
+            keyMap.push(k);
+            json[0][k] = k;
+        }
+        var tmpdata = [];//用来保存转换好的json 
+            json.map((v, i) => keyMap.map((k, j) => Object.assign({}, {
+                v: v[k],
+                position: (j > 25 ? getCharCol(j) : String.fromCharCode(65 + j)) + (i + 1)
+            }))).reduce((prev, next) => prev.concat(next)).forEach((v, i) => tmpdata[v.position] = {
+                v: v.v
+            });
+            var outputPos = Object.keys(tmpdata); //设置区域,比如表格从A1到D10
+            var tmpWB = {
+                SheetNames: ['mySheet'], //保存的表标题
+                Sheets: {
+                    'mySheet': Object.assign({},
+                        tmpdata, //内容
+                        {
+                            '!ref': outputPos[0] + ':' + outputPos[outputPos.length - 1] //设置填充区域
+                        })
+                }
+            };
+            tmpDown = new Blob([s2ab(XLSX.write(tmpWB, 
+                {bookType: (type == undefined ? 'xlsx':type),bookSST: false, type: 'binary'}//这里的数据是用来定义导出的格式类型
+                ))], {
+                type: ""
+            }); //创建二进制对象写入转换好的字节流
+        var href = URL.createObjectURL(tmpDown); //创建对象超链接
+        document.getElementById("hf").href = href; //绑定a标签
+        document.getElementById("hf").click(); //模拟点击实现下载
+        setTimeout(function() { //延时释放
+            URL.revokeObjectURL(tmpDown); //用URL.revokeObjectURL()来释放这个object URL
+        }, 100);
+    }
+
+    function s2ab(s) { //字符串转字符流
+        var buf = new ArrayBuffer(s.length);
+        var view = new Uint8Array(buf);
+        for (var i = 0; i != s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
+        return buf;
+    }
+        // 将指定的自然数转换为26进制表示。映射关系：[0-25] -> [A-Z]。
+    function getCharCol(n) {
+        let temCol = '',
+        s = '',
+        m = 0
+        while (n > 0) {
+            m = n % 26 + 1
+            s = String.fromCharCode(m + 64) + s
+            n = (n - m) / 26
+        }
+        return s
+    }
+
+
+    function fixdata(data) { //文件流转BinaryString
+        var o = "",
+            l = 0,
+            w = 10240;
+        for (; l < data.byteLength / w; ++l) o += String.fromCharCode.apply(null, new Uint8Array(data.slice(l * w, l * w + w)));
+        o += String.fromCharCode.apply(null, new Uint8Array(data.slice(l * w)));
+        return o;
+    }
+</script>
+
+</html>
