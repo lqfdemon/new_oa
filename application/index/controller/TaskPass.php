@@ -394,12 +394,13 @@ class TaskPass extends CommonController
     	}
 		return $log_status_list;
 	}
-    public function send_warning_msg($receiver_id){
+    public function send_warning_msg($receiver_id,$task_pass_id){
+        $task_pass = TaskPassInfo::get($task_pass_id);
         $user_info = Db::table('user')->where(['id'=>$receiver_id])->find();
         if(empty($user_info['mobile_tel'])){
             $this->error("用户手机号码为空");
         }else{
-            $msg = "您有一条公文流转等待处理，请登录卫计OA系统处理";
+            $msg = "您有一条公文流转等待处理，请登录卫计OA系统处理,标题：".$task_pass['form_title'];
             $res = $this->send_sginal_msg($user_info['mobile_tel'],$msg);
             Log::record($res);
             $this->success("发送完成");
