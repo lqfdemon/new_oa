@@ -100,6 +100,7 @@ class TaskPassMobile extends Controller
     public function get_allow_users(){
         $user_name_list=Db::table('user')
             ->where(['dept_id'=>['in',['67','5']]])
+            ->order('sort_id','asc')
             ->field('name')
             ->select();
         return $user_name_list;
@@ -179,7 +180,7 @@ class TaskPassMobile extends Controller
             $executor_open_id = $user_wx_info['open_id'];
             $jsonText = array(
                 'touser'=>$executor_open_id, 'template_id'=>$template_id ,
-                'url'=>"http://www.yeah-use.com/oa/index/task_pass_mobile/get_auth",
+                'url'=>SITE_URL."/oa/index/task_pass_mobile/get_auth",
                 'data'=>array(
                     'first'=>array('value'=>$user_wx_info['name']."您好，您有一条公文流转待处理",'color'=>"#173177",),                               
                     'keyword1'=>array('value'=>$sender_name,'color'=>"#173177",),

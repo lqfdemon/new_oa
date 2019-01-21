@@ -1,5 +1,5 @@
 
-    var TableInit = function (tableId,dataUrl,listIdName,columnList,onClickFunction,searchParams,export_flag) {
+    var TableInit = function (tableId,dataUrl,listIdName,columnList,onClickFunction,searchParams,export_flag,pagenation_type='client') {
         var oTableInit = new Object();
         console.log(export_flag);
         //初始化Table
@@ -17,6 +17,7 @@
                 queryParams:searchParams,
                 showExport: export_flag,//显示导出按钮  
                 exportDataType: "basic",//导出类型  
+                sidePagination:pagenation_type,//指定服务器端分页
             });
         };
         return oTableInit;

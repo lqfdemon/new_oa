@@ -327,10 +327,16 @@
         ];
         searchParams=function (params) {
             var title =$("#search_condition_form #title").val();
-            var data = {'type':'not_finished','title':title};
+            var data = {
+                'type':'not_finished',
+                'title':title,
+                'limit':params.limit,
+                'offset':params.offset,
+                'order':params.order,
+            };
             return data;
         };
-        var notFinishedTable = new TableInit('notFinishedTable',url,'id',column_list,OnClickFunction,searchParams,false);
+        var notFinishedTable = new TableInit('notFinishedTable',url,'id',column_list,OnClickFunction,searchParams,false,'server');
         notFinishedTable.Init();
     }
     function fileFlagFormatter(value, row, index) {
@@ -479,10 +485,16 @@
         ];
         searchParams=function (params) {
             var title =$("#search_condition_form #title").val();
-            var data = {'type':'finished','title':title};
+            var data = {
+                'type':'finished',
+                'title':title,
+                'limit':params.limit,
+                'offset':params.offset,
+                'order':params.order,
+            };
             return data;
         };
-        var finishedTable = new TableInit('finishedTable',url,'id',column_list,finishedOnClickFunction,searchParams,false);
+        var finishedTable = new TableInit('finishedTable',url,'id',column_list,finishedOnClickFunction,searchParams,false,'server');
         finishedTable.Init();
     }
     function finishedOnClickFunction(row){
@@ -553,10 +565,13 @@
             var data = {
                 'title':title,
                 'status':$("#task_pass_status").val(),
+                'limit':params.limit,
+                'offset':params.offset,
+                'order':params.order,
             };
             return data;
         };
-        var sendTable = new TableInit('sendTable',url,'id',column_list,sendOnClickFunction,searchParams,true);
+        var sendTable = new TableInit('sendTable',url,'id',column_list,sendOnClickFunction,searchParams,true,'server');
         sendTable.Init();
     }
     function status_change(){

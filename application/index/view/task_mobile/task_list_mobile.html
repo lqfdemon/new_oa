@@ -15,6 +15,7 @@
             {volist name="task_list" id="task"}
                 <div class="weui-media-box weui-media-box_text" onclick="check({$task.id});">
                     <h4 class="weui-media-box__title">{$task.name}</h4>
+                    <p class="weui-media-box__desc">编号:{$task.id}</p>
                     <p class="weui-media-box__desc">发送者:{$task.user_name}</p>
                     <p class="weui-media-box__desc">发送时间:{$task.send_time}</p>
                 </div>

@@ -35,6 +35,8 @@ class TaskManage extends CommonController
         return $view->fetch('task_list'); 
     }
     public function get_task_list($type,$user_name,$title,$offset,$limit){
+        Log::record($offset);
+        Log::record($limit);
         if($type == 'not_finished'){
             $where_log['status'] = 0;
             $where_log['executor'] = $this->get_user_id();
@@ -267,6 +269,8 @@ class TaskManage extends CommonController
         $executor_name=rtrim($executor_name_list, "、");
         $message= "请".$executor_name."在办公网签收【".$user_name."】发送的“".$title."”文件！";
         $message=urlencode($message);
+        //  $message2= "请[@375554305]".$executor_name."在办公网签收【".$user_name."】发送的“".$title."”文件！";
+        // $message2=urlencode($message2);
         //$url = "http://localhost:8080/?key=Ud028311&a=<%26%26>SendClusterMessage<%26>676173297<%26>".$message;  
         if (strstr($user_name,"办公室")) {
            $url = "http://localhost:8080/?key=Ud028311&a=<%26%26>SendClusterMessage<%26>250645311<%26>".$message;
@@ -305,7 +309,7 @@ class TaskManage extends CommonController
             $executor_open_id = $user_wx_info['open_id'];
             $jsonText = array(
                 'touser'=>$executor_open_id, 'template_id'=>$template_id ,
-                'url'=>"http://www.yeah-use.com/oa/index/task_mobile/task_list_get_auth",
+                'url'=>SITE_URL."/oa/index/task_mobile/task_list_get_auth",
                 'data'=>array(
                     'first'=>array('value'=>$user_wx_info['name']."您好，您收到一条新公文",'color'=>"#173177",),                               
                     'keyword1'=>array('value'=>$title,'color'=>"#173177",),

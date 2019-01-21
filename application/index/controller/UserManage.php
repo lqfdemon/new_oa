@@ -18,7 +18,7 @@ class UserManage extends CommonController
 		$dept_list = $this->get_all_dept($dept_id);
 		$dept_id_list =$dept_list['id'];
 		$map['dept_id']=array('in',$dept_id_list);
-		$user_list=User::where($map)->select()->toArray();
+		$user_list=User::where($map)->order('sort_id','asc')->select()->toArray();
 		return $user_list;
     }
     //获取当前部门和所有子部门

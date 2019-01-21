@@ -103,7 +103,7 @@ class TaskPass extends CommonController
             $executor_open_id = $user_wx_info['open_id'];
             $jsonText = array(
                 'touser'=>$executor_open_id, 'template_id'=>$template_id ,
-                'url'=>"http://www.yeah-use.com/oa/index/task_pass_mobile/get_auth",
+                'url'=>SITE_URL."/oa/index/task_pass_mobile/get_auth",
                 'data'=>array(
                     'first'=>array('value'=>$user_wx_info['name']."您好，您有一条公文流转待处理",'color'=>"#173177",),                               
                     'keyword1'=>array('value'=>$sender_name,'color'=>"#173177",),
@@ -124,7 +124,7 @@ class TaskPass extends CommonController
         Db::table('task_pass_log')->where('task_pass_id',$task_pass_id)->delete();
         $this->success("撤回成功");
     }
-	public function get_send_pass_list($title,$status){
+	public function get_send_pass_list($title,$status,$offset,$limit){
 		$where_task['creater_id'] = Session::get('id');
 		$recall=[];
         if(!empty($title)){
@@ -137,7 +137,11 @@ class TaskPass extends CommonController
                 $where_task['status'] = $status;   
             }             
         }
-		$task_list = TaskPassInfo::where($where_task)->order('id desc')->select()->toArray();		
+		$task_list = TaskPassInfo::where($where_task)
+                    ->limit($offset,$limit)
+                    ->order('id desc')
+                    ->select()
+                    ->toArray();		
     	foreach ($task_list as $key => $task) {
             $file_list= array();
             $file_flag= 0;
@@ -177,14 +181,17 @@ class TaskPass extends CommonController
 				'status'=>$task['status'],
 			]);
     	}
-    	return $recall;
+    	$result["rows"] = $recall;
+        $result["total"]= TaskPassInfo::where($where_task)->count('id');
+        return $result;
 	}
     public function get_not_finished_num(){
         $where_log['status'] = 0;
         $where_log['receiver_id'] = $this->get_user_id();
         return  TaskPassLog::where($where_log)->count('id');
     }
-    public function get_task_pass_list($type,$title){
+
+    public function get_task_pass_list($type,$title,$offset,$limit){
         if($type == 'not_finished'){
             $where_log['status'] = 0;
             $where_log['receiver_id'] = $this->get_user_id();
@@ -195,72 +202,72 @@ class TaskPass extends CommonController
             $this->error("公文类型错误");
         }
 
-		$task_pass_id_list = TaskPassLog::where($where_log)->column('task_pass_id');
-        $where_task['id'] = array('in',$task_pass_id_list);
-        if(empty($task_pass_id_list)){
-            return [];
-        }
+        $where_task = [];
         if(!empty($title)){
-            $where_task['form_title'] = array('like',"%$title%");                
+            $where_task['form_title'] = array('like',"%$title%");  
+            $task_pass_id_list = TaskPassInfo::where($where_task)->column('id');
+            $where_log['task_pass_id'] = ['IN',$task_pass_id_list];              
         }
-        $task_list = TaskPassInfo::where($where_task)
+
+        $task_log_list = TaskPassLog::where($where_log)
+                ->limit($offset,$limit)
                 ->order('id desc')
                 ->select()
                 ->toArray();
-        if(empty($task_list)){
-            return [];
-        }
-        $task_log_list = TaskPassLog::where($where_log)->order('id desc')->select()->toArray();
-        if(empty($task_log_list)){
-            return [];
-        }
+
         $recall=[];
         foreach ($task_log_list as $key => $log) {
-        	foreach ($task_list as $key => $task) {
-        		if($log['task_pass_id'] == $task['id']){
-		            $file_list= array();
-		            $file_flag= 0;
-		            if(!empty($task['add_file'])){
-		                //有附件
-		                $file_flag= 1;
-		                $file_id_list = explode(';', $task['add_file']);
-		                foreach ($file_id_list as $id_key => $file_id) {
-		                    $file = File::get($file_id);
-		                    $file_url= url('download','file_id='.$file_id);
-		                    if(!empty($file)){
-		                        array_push($file_list, ['file_name'=>$file->name,'file_url'=>$file_url]);
-		                    }
-		                }
-		            }
-		            $status_str = "";
-		            if($task['status'] == 0){
-		            	$status_str = "意见收集中";
-		            }else if($task['status'] == 1){
-		            	$status_str = "意见收集完成";
-		            }else if($task['status'] == 2){
-		            	$status_str = "处理完成";
-		            }
-		            array_push($recall,[
-        				'id'=>$log['id'],
-        				'task_pass_id'=>$log['task_pass_id'],
-        				'file_list'=>$file_list,
-        				'file_flag'=>$file_flag,
-                        'form_id'=>$task['form_id'],
-        				'form_title'=>$task['form_title'],
-        				'form_unit'=>$task['form_unit'],
-        				'form_time'=>$task['form_time'],
-        				'form_leavel'=>$task['form_leavel'],
-        				'suggestion'=>$task['suggestion'],
-        				'creater_name'=>$task['creater_name'],
-        				'creater_id'=>$task['creater_id'],
-        				'status_str'=>$status_str,
-        				'status'=>$task['status'],
-        			]);
-        		}
-        	}
+            $task_pass = Db::table('task_pass_info')->where('id',$log['task_pass_id'])->find();
+            if(!empty($task_pass)){
+                $file_list= [];
+                $file_flag= 0;
+                if(!empty($task_pass['add_file'])){
+                    //有附件
+                    $file_flag= 1;
+                    $file_id_list = explode(';', $task_pass['add_file']);
+                    foreach ($file_id_list as $id_key => $file_id) {
+                        $file = File::get($file_id);
+                        $file_url= url('download','file_id='.$file_id);
+                        if(!empty($file)){
+                            array_push($file_list, ['file_name'=>$file->name,'file_url'=>$file_url]);
+                        }
+                    }
+                }
+
+                $status_str = "";
+                if($task_pass['status'] == 0){
+                    $status_str = "意见收集中";
+                }else if($task_pass['status'] == 1){
+                    $status_str = "意见收集完成";
+                }else if($task_pass['status'] == 2){
+                    $status_str = "处理完成";
+                }
+
+
+                array_push($recall,[
+                    'id'=>$log['id'],
+                    'task_pass_id'=>$log['task_pass_id'],
+                    'file_list'=>$file_list,
+                    'file_flag'=>$file_flag,
+                    'form_id'=>$task_pass['form_id'],
+                    'form_title'=>$task_pass['form_title'],
+                    'form_unit'=>$task_pass['form_unit'],
+                    'form_time'=>$task_pass['form_time'],
+                    'form_leavel'=>$task_pass['form_leavel'],
+                    'suggestion'=>$task_pass['suggestion'],
+                    'creater_name'=>$task_pass['creater_name'],
+                    'creater_id'=>$task_pass['creater_id'],
+                    'status_str'=>$status_str,
+                    'status'=>$task_pass['status'],
+                ]);    
+
+            }  
         }
-        return $recall;
+        $result["rows"] = $recall;
+        $result["total"]= TaskPassLog::where($where_log)->count('id');
+        return $result;
     }
+    
     public function get_suggestion_list($task_pass_id){
     	$suggestion_list = [];
     	$task_pass = TaskPassInfo::get($task_pass_id);
